@@ -11,26 +11,36 @@ import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "user")
-public class UserModel extends BaseEntity {
+public class UserEntity extends BaseEntity {
 
     private String loginId;
     private String password;
     private String email;
     private String name;
     private String nickname;
-    private LocalDate birthDate;
+    private String birthDate;
 
-    protected UserModel() {}
+    private String gender;
 
-    static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[A-Za-z]{2,6}$");
-    static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
-    public UserModel(String loginId, String password, String email, String name, String nickname, LocalDate birthDate) {
+    protected UserEntity() {}
+
+    static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
+    static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    static final Pattern BIRTH_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}$");
+
+    public UserEntity(String loginId, String password, String email, String name, String nickname, String birthDate, String gender) {
 
         if (loginId == null || loginId.isBlank() || !LOGIN_ID_PATTERN.matcher(loginId).matches()) {
-            throw new CoreException(UserErrorType.INVALID_LOGIN_ID, "로그인 ID 형식이 유효하지 않습니다.");
+            throw new CoreException(UserErrorType.INVALID_LOGIN_ID);
         }
         if (email == null || email.isBlank() || !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new CoreException(UserErrorType.INVALID_EMAIL, "이메일 형식이 유효하지 않습니다.");
+            throw new CoreException(UserErrorType.INVALID_EMAIL);
+        }
+        if (birthDate == null || birthDate.isBlank() || !BIRTH_PATTERN.matcher(birthDate).matches()) {
+            throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
+        }
+        if (gender == null || gender.isBlank()) {
+            throw new CoreException(UserErrorType.GENDER_CANNOT_BE_NULL);
         }
 
         this.loginId = loginId;
@@ -39,6 +49,7 @@ public class UserModel extends BaseEntity {
         this.name = name;
         this.nickname = nickname;
         this.birthDate = birthDate;
+        this.gender = gender;
     }
     public String getEmail() { return this.email; }
     public String getName() {
@@ -48,5 +59,7 @@ public class UserModel extends BaseEntity {
     public String getLoginId() { return this.loginId; }
     public String getPassword() { return this.password; }
     public String getNickname() { return this.nickname; }
-    public LocalDate getBirthDate() { return this.birthDate; }
+    public String getBirthDate() { return this.birthDate; }
+
+    public String getGender() { return this.gender; }
 }
