@@ -9,10 +9,10 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public class UserV1Dto {
-    public record UserResponse(Long id, String loginId, String email, String birthDate) {
+    public record UserResponse(Long id, String loginId, String email, String birthDate, String gender) {
         public static UserResponse from(UserInfo user) {
             return new UserResponse(
-                user.id(), user.loginId(), user.email(), user.birthDate()
+                user.id(), user.loginId(), user.email(), user.birthDate(), user.gender()
             );
         }
     }

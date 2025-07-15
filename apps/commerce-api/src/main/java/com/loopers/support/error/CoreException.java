@@ -2,8 +2,6 @@ package com.loopers.support.error;
 
 import lombok.Getter;
 
-import javax.lang.model.type.ErrorType;
-
 @Getter
 public class CoreException extends RuntimeException {
     private final BaseErrorType errorType;
