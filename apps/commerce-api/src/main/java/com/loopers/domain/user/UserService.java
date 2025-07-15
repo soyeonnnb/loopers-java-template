@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -22,4 +24,7 @@ public class UserService {
         return userRepository.save(request.to());
     }
 
+    public UserEntity getUserInfo(String userId) {
+        return userRepository.findByLoginId(userId).orElse(null);
+    }
 }
