@@ -36,6 +36,7 @@ public class UserEntity extends BaseEntity {
         if (email == null || email.isBlank() || !EMAIL_PATTERN.matcher(email).matches()) {
             throw new CoreException(UserErrorType.INVALID_EMAIL);
         }
+
         if (birthDate == null || birthDate.isBlank() || !BIRTH_PATTERN.matcher(birthDate).matches()) {
             throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
         }

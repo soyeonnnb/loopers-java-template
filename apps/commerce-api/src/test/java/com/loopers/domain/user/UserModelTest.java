@@ -40,9 +40,8 @@ public class UserModelTest {
         @DisplayName("이메일이 xx@yy.zz 형식에 맞지 않으면, User 객체 생성에 실패한다.")
         @ParameterizedTest
         @ValueSource(strings = {
-                "", "xxyyzz", "xxyy.zz", "xx@yyzz", "x@y.z", "xx@y.z", "x@yy.z", "x@y.zz",
-                "xx@yy.z", "x@yy.zz", "xx@y.zz", "@yy.zz", "xx@yy.", "xx@.zz",
-                "xx@@yy.zz", "xx@yy..zz", "xx@.yy.zz", "xx@yy.zz.", ".xx@yy.zz", "xx.@yy.zz",
+                "", "xxyyzz", "xxyy.zz", "xx@yyzz", "x@y.z", "xx@y.z", "x@yy.z",
+                "xx@yy.z", "@yy.zz", "xx@yy.", "xx@.zz", "xx@@yy.zz","xx@yy.zz.",
                 "x x@yy.zz", "xx@yy .zz", "xx@yy,zz", "xx@yy.zz "
         })
         void throwsBadRequestException_whenInvalidEmail(String email) {

@@ -22,4 +22,9 @@ public class UserRepositoryImpl implements UserRepository {
     public UserEntity save(UserEntity user) {
         return userJpaRepository.save(user);
     }
+
+    @Override
+    public Boolean existsByLoginId(String loginId) {
+        return userJpaRepository.existsByLoginId(loginId);
+    }
 }
