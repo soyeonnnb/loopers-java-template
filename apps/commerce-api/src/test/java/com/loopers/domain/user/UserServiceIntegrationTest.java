@@ -1,9 +1,11 @@
 package com.loopers.domain.user;
 
+import com.loopers.application.user.UserInfo;
 import com.loopers.domain.example.ExampleModel;
 import com.loopers.domain.example.ExampleService;
 import com.loopers.infrastructure.example.ExampleJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
+import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -16,11 +18,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -29,7 +35,7 @@ class UserServiceIntegrationTest {
     private UserService userService;
 
     @Autowired
-    private UserJpaRepository userJpaRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
@@ -59,7 +65,7 @@ class UserServiceIntegrationTest {
                     () -> assertThat(result.getGender()).isEqualTo(request.gender()),
                     () -> assertThat(result.getBirthDate()).isEqualTo(request.birthDate()),
                     () -> assertThat(result.getNickname()).isEqualTo(request.nickname())
-//                    () -> verify(userJpaRepository).save(result)
+//                    () -> verify(userRepository).save(result)
             );
         }
 
@@ -68,7 +74,7 @@ class UserServiceIntegrationTest {
         void throwsException_whenAlreadyRegisterId() {
             // arrange
             String loginId = "la28s5d";
-            userJpaRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F"));
+            userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F"));
             UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(loginId, "la28s5d@naver.com", "password", "F", "2025-01-01", "소연");
 
             // act
@@ -79,6 +85,56 @@ class UserServiceIntegrationTest {
             // assert
             assertAll(
                     () -> assertThat(result.getErrorType()).isEqualTo(UserErrorType.DUPLICATE_LOGIN_ID)
+            );
+        }
+    }
+
+    @DisplayName("내 정보를 조회할 때,")
+    @Nested
+    class GetUserInfo {
+        @DisplayName("해당 ID 의 회원이 존재할 경우, 회원 정보가 반환된다.")
+        @Test
+        void returnUserInfo_whenUserExists() {
+            String loginId = "la28s5d";
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            userRepository.save(userEntity);
+
+            // act
+            UserEntity result = userService.getUserInfo(loginId);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNotNull(),
+                    () -> {
+                        assert result != null;
+                        assertEquals(userEntity.getLoginId(), result.getLoginId());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertEquals(userEntity.getEmail(), result.getEmail());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertEquals(userEntity.getGender(), result.getGender());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertEquals(userEntity.getBirthDate(), result.getBirthDate());
+                    }
+            );
+        }
+
+        @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+        @Test
+        void returnNull_whenUserNotExists() {
+            String loginId = "la28s5d";
+
+            // act
+            UserEntity result = userService.getUserInfo(loginId);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNull()
             );
         }
     }
