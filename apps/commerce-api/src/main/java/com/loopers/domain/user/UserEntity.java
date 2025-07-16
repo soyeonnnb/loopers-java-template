@@ -21,6 +21,7 @@ public class UserEntity extends BaseEntity {
     private String birthDate;
 
     private String gender;
+    private Long point;
 
     protected UserEntity() {}
 
@@ -51,6 +52,7 @@ public class UserEntity extends BaseEntity {
         this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.point = 0L;
     }
     public String getEmail() { return this.email; }
     public String getName() {
@@ -63,4 +65,5 @@ public class UserEntity extends BaseEntity {
     public String getBirthDate() { return this.birthDate; }
 
     public String getGender() { return this.gender; }
+    public Long getPoint() {return this.point;}
 }

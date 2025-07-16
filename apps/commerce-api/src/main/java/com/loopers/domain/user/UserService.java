@@ -21,7 +21,8 @@ public class UserService {
             throw new CoreException(UserErrorType.DUPLICATE_LOGIN_ID);
         }
 
-        return userRepository.save(request.to());
+        UserEntity userEntity = userRepository.save(request.to());
+        return userEntity;
     }
 
     public UserEntity getUserInfo(String userId) {

@@ -25,4 +25,9 @@ public class UserFacade {
         UserEntity userEntity = userService.getUserInfo(userId);
         return userEntity == null ? null : UserInfo.from(userEntity);
     }
+
+    public Long getUserPoint(String userId) {
+        UserEntity userEntity = userService.getUserInfo(userId);
+        return userEntity == null ? null : userEntity.getPoint();
+    }
 }

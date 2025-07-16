@@ -34,7 +34,7 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @Override
     @GetMapping("/me")
-    public ApiResponse<UserV1Dto.UserResponse> getUserInfo(String userId) {
+    public ApiResponse<UserV1Dto.UserResponse> getUserInfo(@RequestHeader("X-USER-ID") String userId) {
         UserInfo userInfo = userFacade.getUserInfo(userId);
         if (userInfo == null) {
             throw new CoreException(GlobalErrorType.NOT_FOUND);
