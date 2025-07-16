@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import com.loopers.application.user.UserFacade;
 import com.loopers.application.user.UserInfo;
 import com.loopers.domain.example.ExampleModel;
 import com.loopers.domain.example.ExampleService;
@@ -24,6 +25,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +41,9 @@ class UserServiceIntegrationTest {
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+
+    @Autowired
+    private UserFacade userFacade;
 
     @AfterEach
     void tearDown() {
@@ -131,6 +136,43 @@ class UserServiceIntegrationTest {
 
             // act
             UserEntity result = userService.getUserInfo(loginId);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNull()
+            );
+        }
+    }
+
+    @DisplayName("포인트 조회를 할 때,")
+    @Nested
+    class GetPoint {
+        @DisplayName("해당 ID 의 회원이 존재할 경우, 보유 포인트가 반환된다.")
+        @Test
+        void returnPoint_whenUserExists() {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            userRepository.save(userEntity);
+
+            // act
+            Long result = userFacade.getUserPoint(loginId);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNotNull(),
+                    () -> assertEquals(userEntity.getPoint(), result)
+            );
+        }
+
+        @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+        @Test
+        void returnNull_whenUserDoesNotExist() {
+            // arrange
+            String loginId = "la28s5d";
+
+            // act
+            Long result = userFacade.getUserPoint(loginId);
 
             // assert
             assertAll(
