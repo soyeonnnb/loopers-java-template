@@ -4,6 +4,7 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.support.error.GlobalErrorType;
+import com.loopers.support.error.UserErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,7 @@ class PointV1ApiE2ETest {
     private final TestRestTemplate testRestTemplate;
     private final DatabaseCleanUp databaseCleanUp;
 
-    @MockitoBean
     private final UserRepository userRepository;
-
 
     @Autowired
     public PointV1ApiE2ETest(
@@ -58,9 +57,8 @@ class PointV1ApiE2ETest {
             // arrange
             String loginId = "la28s5d";
             UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
-            ReflectionTestUtils.setField(userEntity, "id", 1L);
-            given(userRepository.findByLoginId("la28s5d")).willReturn(Optional.of(userEntity));
-
+//            given(userRepository.findByLoginId("la28s5d")).willReturn(Optional.of(userEntity));
+            userRepository.save(userEntity);
 
             // act
             HttpHeaders headers = new HttpHeaders();
@@ -90,6 +88,59 @@ class PointV1ApiE2ETest {
             // assert
             assertAll(  () -> assertTrue(response.getStatusCode().is4xxClientError()),
                     () -> assertThat(response.getBody().meta().errorCode()).isEqualTo(GlobalErrorType.BAD_REQUEST.getCode())
+            );
+        }
+    }
+
+    @DisplayName("POST /api/v1/points/charge")
+    @Nested
+    class ChargePoints {
+
+        private static final String ENDPOINT = "/api/v1/points/charge";
+
+        @DisplayName("존재하는 유저가 1000원을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
+        @Test
+        void returnTotalPoint_whenExistsUserCharge1000won() {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            userRepository.save(userEntity);
+
+            // act
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-USER-ID", loginId);
+
+            PointV1Dto.ChargePointRequest request = new PointV1Dto.ChargePointRequest(1000L);
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response =
+                    testRestTemplate.exchange(ENDPOINT, HttpMethod.POST,  new HttpEntity<>(request, headers), responseType);
+
+            // assert
+            assertAll(  () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
+                    () -> assertNotNull(response.getBody()),
+                    () -> assertNotNull(response.getBody().data()),
+                    () -> assertThat(response.getBody().data().point()).isEqualTo(1000L)
+            );
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 404 Not Found 응답을 반환한다.")
+        @Test
+        void throw404Error_whenUserDoesNotExists() {
+            // arrange
+
+            // act
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-USER-ID", "la28s5d");
+
+            PointV1Dto.ChargePointRequest request = new PointV1Dto.ChargePointRequest(1000L);
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response =
+                    testRestTemplate.exchange(ENDPOINT, HttpMethod.POST,  new HttpEntity<>(request, headers), responseType);
+
+            // assert
+            assertAll(  () -> assertTrue(response.getStatusCode().is4xxClientError()),
+                    () -> assertTrue(response.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)),
+                    () -> assertThat(response.getBody().meta().errorCode()).isEqualTo(UserErrorType.USER_NOT_EXISTS.getCode())
             );
         }
     }

@@ -16,7 +16,6 @@ public class UserModelTest {
     @DisplayName("User 객체를 생성할 때, ")
     @Nested
     class Create {
-
         @DisplayName("ID 가 영문 및 숫자 10자 이내 형식에 맞지 않으면, User 객체 생성에 실패한다.")
         @ParameterizedTest
         @ValueSource(strings = {

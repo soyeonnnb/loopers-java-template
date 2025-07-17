@@ -7,6 +7,7 @@ import com.loopers.domain.example.ExampleService;
 import com.loopers.infrastructure.example.ExampleJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -155,7 +156,7 @@ class UserServiceIntegrationTest {
             UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
             userRepository.save(userEntity);
 
-            // act
+            // act  ₩₩₩₩
             Long result = userFacade.getUserPoint(loginId);
 
             // assert
@@ -180,4 +181,25 @@ class UserServiceIntegrationTest {
             );
         }
     }
+    @DisplayName("포인트 충전을 할 때,")
+    @Nested
+    class ChargePoint {
+        @DisplayName("존재하지 않는 유저 ID 로 충전을 시도한 경우, 실패한다.")
+        @Test
+        void throwError_whenDoesNotExistUserId() {
+            // arrange
+
+            // act
+            PointV1Dto.ChargePointRequest request = new PointV1Dto.ChargePointRequest(1000L);
+            CoreException result = assertThrows(CoreException.class, () ->
+                    userService.chargePoint("test", request)
+            );
+
+            // assert
+            assertAll(
+                    () -> assertThat(result.getErrorType()).isEqualTo(UserErrorType.USER_NOT_EXISTS)
+            );
+        }
+    }
+
 }
