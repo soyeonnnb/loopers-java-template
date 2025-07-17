@@ -13,27 +13,27 @@ import java.util.regex.Pattern;
 @Table(name = "user")
 public class UserEntity extends BaseEntity {
 
+    static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
+    static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    static final Pattern BIRTH_PATTERN = Pattern.compile("^(19|20)\\d\\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$");
     private String loginId;
     private String password;
     private String email;
     private String name;
     private String nickname;
-    private String birthDate;
-
+    private LocalDate birthDate;
     private String gender;
     private Long point;
 
-    protected UserEntity() {}
-
-    static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
-    static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    static final Pattern BIRTH_PATTERN = Pattern.compile("^(19|20)\\d\\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$");
+    protected UserEntity() {
+    }
 
     public UserEntity(String loginId, String password, String email, String name, String nickname, String birthDate, String gender) {
 
         if (loginId == null || loginId.isBlank() || !LOGIN_ID_PATTERN.matcher(loginId).matches()) {
             throw new CoreException(UserErrorType.INVALID_LOGIN_ID);
         }
+
         if (email == null || email.isBlank() || !EMAIL_PATTERN.matcher(email).matches()) {
             throw new CoreException(UserErrorType.INVALID_EMAIL);
         }
@@ -41,6 +41,7 @@ public class UserEntity extends BaseEntity {
         if (birthDate == null || birthDate.isBlank() || !BIRTH_PATTERN.matcher(birthDate).matches()) {
             throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
         }
+
         if (gender == null || gender.isBlank()) {
             throw new CoreException(UserErrorType.GENDER_CANNOT_BE_NULL);
         }
@@ -50,22 +51,47 @@ public class UserEntity extends BaseEntity {
         this.email = email;
         this.name = name;
         this.nickname = nickname;
-        this.birthDate = birthDate;
+        this.birthDate = stringToLocalDate(birthDate);
         this.gender = gender;
         this.point = 0L;
     }
-    public String getEmail() { return this.email; }
+
+    private LocalDate stringToLocalDate(String input) {
+        String[] inputs = input.split("-");
+        return LocalDate.of(Integer.parseInt(inputs[0]), Integer.parseInt(inputs[1]), Integer.parseInt(inputs[2]));
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
     public String getName() {
         return this.name;
     }
 
-    public String getLoginId() { return this.loginId; }
-    public String getPassword() { return this.password; }
-    public String getNickname() { return this.nickname; }
-    public String getBirthDate() { return this.birthDate; }
+    public String getLoginId() {
+        return this.loginId;
+    }
 
-    public String getGender() { return this.gender; }
-    public Long getPoint() {return this.point;}
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public LocalDate getBirthDate() {
+        return this.birthDate;
+    }
+
+    public String getGender() {
+        return this.gender;
+    }
+
+    public Long getPoint() {
+        return this.point;
+    }
 
     public void chargePoint(Long point) {
         this.point += point;
