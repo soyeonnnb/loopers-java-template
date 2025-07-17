@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.UserErrorType;
@@ -25,7 +26,15 @@ public class UserService {
         return userEntity;
     }
 
+    @Transactional(readOnly = true)
     public UserEntity getUserInfo(String userId) {
         return userRepository.findByLoginId(userId).orElse(null);
+    }
+
+    @Transactional
+    public UserEntity chargePoint(String userId, PointV1Dto.ChargePointRequest request) {
+       UserEntity userEntity = userRepository.findByLoginId(userId).orElseThrow(() -> new CoreException(UserErrorType.USER_NOT_EXISTS));
+       userEntity.chargePoint(request.point());
+       return userEntity;
     }
 }

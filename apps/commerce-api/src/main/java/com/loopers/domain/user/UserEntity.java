@@ -66,4 +66,8 @@ public class UserEntity extends BaseEntity {
 
     public String getGender() { return this.gender; }
     public Long getPoint() {return this.point;}
+
+    public void chargePoint(Long point) {
+        this.point += point;
+    }
 }
