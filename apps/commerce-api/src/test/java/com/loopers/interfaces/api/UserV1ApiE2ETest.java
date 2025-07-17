@@ -67,7 +67,7 @@ class UserV1ApiE2ETest {
         void returnUserInfo_whenValidInfoProvided() {
             // arrange
             UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(
-                   "la28s5d", "la28s5d@naver.com", "password", "F",  "2025-01-01", "김소연"
+                   "la28s5d", "la28s5d@naver.com", "password", "F",  "2025-01-01", "소연", "김소연"
             );
 
             // act
@@ -90,7 +90,7 @@ class UserV1ApiE2ETest {
         void throw400Error_whenGenderIsNull() {
             // arrange
             UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(
-                    "la28s5d", "la28s5d@naver.com", "password", "",  "2025-01-01", "김소연"
+                    "la28s5d", "la28s5d@naver.com", "password", "",  "2025-01-01", "소연", "김소연"
             );
 
             // act

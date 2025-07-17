@@ -15,4 +15,7 @@ dependencies {
 
     // test-fixtures
     testImplementation(testFixtures(project(":modules:jpa")))
+
+    // 비밀번호 암호화
+    implementation("org.springframework.security:spring-security-crypto")
 }

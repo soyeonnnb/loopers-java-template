@@ -30,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 
 
 @SpringBootTest
@@ -58,7 +59,7 @@ class UserServiceIntegrationTest {
         @Test
         void saveUserEntity_whenUserRegister() {
             // arrange
-            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest("la28s5d", "la28s5d@naver.com", "password", "F", "2025-01-01", "소연");
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest("la28s5d", "la28s5d@naver.com", "password", "F", "2025-01-01", "소연", "김소연");
 
             // act
             UserEntity result = userService.register(request);
@@ -66,12 +67,26 @@ class UserServiceIntegrationTest {
             // assert
             assertAll(
                     () -> assertThat(result).isNotNull(),
-                    () -> assertThat(result.getLoginId()).isEqualTo(request.loginId()),
-                    () -> assertThat(result.getEmail()).isEqualTo(request.email()),
-                    () -> assertThat(result.getGender()).isEqualTo(request.gender()),
-                    () -> assertThat(result.getBirthDate()).isEqualTo(request.birthDate()),
-                    () -> assertThat(result.getNickname()).isEqualTo(request.nickname())
-//                    () -> verify(userRepository).save(result)
+                    () -> {
+                        assert result != null;
+                        assertThat(result.getLoginId()).isEqualTo(request.loginId());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertThat(result.getEmail()).isEqualTo(request.email());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertThat(result.getGender()).isEqualTo(request.gender());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertThat(result.getBirthDate()).isEqualTo(request.birthDate());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertThat(result.getNickname()).isEqualTo(request.nickname());
+                    }
             );
         }
 
@@ -81,7 +96,7 @@ class UserServiceIntegrationTest {
             // arrange
             String loginId = "la28s5d";
             userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F"));
-            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(loginId, "la28s5d@naver.com", "password", "F", "2025-01-01", "소연");
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(loginId, "la28s5d@naver.com", "password", "F", "2025-01-01", "소연", "김소연");
 
             // act
             CoreException result = assertThrows(CoreException.class, () ->

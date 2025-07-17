@@ -27,16 +27,20 @@ public class UserV1Dto {
             String email,
             @NotBlank
             String password,
-
             @Schema(example = "F")
             String gender,
             @NotBlank
             @Schema(example = "2025-01-01")
             String birthDate,
-            String nickname
+            @NotBlank
+            @Schema(example = "소연")
+            String nickname,
+            @NotBlank
+            @Schema(example = "김소연")
+            String name
     ) {
-        public UserEntity to() {
-            return new UserEntity(loginId, password, email, nickname, nickname, birthDate, gender);
+        public UserEntity to(String encodedPassword) {
+            return new UserEntity(loginId, encodedPassword, email, name, nickname, birthDate, gender);
         }
 
     }
