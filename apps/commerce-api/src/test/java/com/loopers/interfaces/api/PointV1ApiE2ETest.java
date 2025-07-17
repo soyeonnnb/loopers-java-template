@@ -57,7 +57,6 @@ class PointV1ApiE2ETest {
             // arrange
             String loginId = "la28s5d";
             UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
-//            given(userRepository.findByLoginId("la28s5d")).willReturn(Optional.of(userEntity));
             userRepository.save(userEntity);
 
             // act
