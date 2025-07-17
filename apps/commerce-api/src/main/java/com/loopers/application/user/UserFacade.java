@@ -1,16 +1,11 @@
 package com.loopers.application.user;
 
-import com.loopers.application.example.ExampleInfo;
-import com.loopers.domain.example.ExampleModel;
-import com.loopers.domain.example.ExampleService;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component

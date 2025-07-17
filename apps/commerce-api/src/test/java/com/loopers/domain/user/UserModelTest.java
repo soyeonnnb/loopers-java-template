@@ -1,16 +1,12 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.example.ExampleModel;
 import com.loopers.support.error.CoreException;
-import com.loopers.support.error.GlobalErrorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UserModelTest {
     @DisplayName("User 객체를 생성할 때, ")
@@ -32,7 +28,7 @@ public class UserModelTest {
 
             // act & assert
             assertThrows(CoreException.class, () ->
-                new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F")
+                    new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F")
             );
         }
 
@@ -40,7 +36,7 @@ public class UserModelTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "", "xxyyzz", "xxyy.zz", "xx@yyzz", "x@y.z", "xx@y.z", "x@yy.z",
-                "xx@yy.z", "@yy.zz", "xx@yy.", "xx@.zz", "xx@@yy.zz","xx@yy.zz.",
+                "xx@yy.z", "@yy.zz", "xx@yy.", "xx@.zz", "xx@@yy.zz", "xx@yy.zz.",
                 "x x@yy.zz", "xx@yy .zz", "xx@yy,zz", "xx@yy.zz "
         })
         void throwsBadRequestException_whenInvalidEmail(String email) {

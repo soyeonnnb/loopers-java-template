@@ -1,36 +1,20 @@
 package com.loopers.domain.user;
 
 import com.loopers.application.user.UserFacade;
-import com.loopers.application.user.UserInfo;
-import com.loopers.domain.example.ExampleModel;
-import com.loopers.domain.example.ExampleService;
-import com.loopers.infrastructure.example.ExampleJpaRepository;
-import com.loopers.infrastructure.user.UserJpaRepository;
-import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
-import com.loopers.support.error.GlobalErrorType;
 import com.loopers.support.error.UserErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
 
 
 @SpringBootTest
@@ -196,6 +180,7 @@ class UserServiceIntegrationTest {
             );
         }
     }
+
     @DisplayName("포인트 충전을 할 때,")
     @Nested
     class ChargePoint {

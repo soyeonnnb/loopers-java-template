@@ -9,8 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -36,8 +34,8 @@ public class UserService {
 
     @Transactional
     public UserEntity chargePoint(String userId, PointV1Dto.ChargePointRequest request) {
-       UserEntity userEntity = userRepository.findByLoginId(userId).orElseThrow(() -> new CoreException(UserErrorType.USER_NOT_EXISTS));
-       userEntity.chargePoint(request.point());
-       return userEntity;
+        UserEntity userEntity = userRepository.findByLoginId(userId).orElseThrow(() -> new CoreException(UserErrorType.USER_NOT_EXISTS));
+        userEntity.chargePoint(request.point());
+        return userEntity;
     }
 }

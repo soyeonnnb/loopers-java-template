@@ -1,6 +1,5 @@
 package com.loopers.interfaces.api.point;
 
-import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.PointErrorType;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +7,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PointV1DtoTest {
     @DisplayName("Point를 충전할 때,")

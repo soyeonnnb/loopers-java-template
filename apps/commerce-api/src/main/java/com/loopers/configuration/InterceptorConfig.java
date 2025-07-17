@@ -1,7 +1,6 @@
 package com.loopers.configuration;
 
 import com.loopers.interceptor.HeaderValidationInterceptor;
-import io.swagger.v3.oas.models.headers.Header;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

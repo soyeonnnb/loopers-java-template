@@ -1,6 +1,5 @@
 package com.loopers.infrastructure.user;
 
-import com.loopers.domain.example.ExampleModel;
 import com.loopers.domain.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
