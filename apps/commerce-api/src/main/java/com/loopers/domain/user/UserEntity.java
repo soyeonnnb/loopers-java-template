@@ -53,10 +53,6 @@ public class UserEntity extends BaseEntity {
             throw new CoreException(UserErrorType.INVALID_EMAIL);
         }
 
-        if (birthDate == null || birthDate.isBlank() || !BIRTH_PATTERN.matcher(birthDate).matches()) {
-            throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
-        }
-
         this.loginId = loginId;
         this.password = password;
         this.email = email;
@@ -68,6 +64,10 @@ public class UserEntity extends BaseEntity {
     }
 
     private LocalDate stringToLocalDate(String input) {
+        if (input == null || input.isBlank() || !BIRTH_PATTERN.matcher(input).matches()) {
+            throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
+        }
+        
         String[] inputs = input.split("-");
         return LocalDate.of(Integer.parseInt(inputs[0]), Integer.parseInt(inputs[1]), Integer.parseInt(inputs[2]));
     }
