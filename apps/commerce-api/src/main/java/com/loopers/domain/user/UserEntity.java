@@ -3,10 +3,7 @@ package com.loopers.domain.user;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.UserErrorType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.regex.Pattern;
@@ -18,15 +15,29 @@ public class UserEntity extends BaseEntity {
     private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern BIRTH_PATTERN = Pattern.compile("^(19|20)\\d\\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$");
+    @Column(name = "로그인 ID", nullable = false, length = 10, unique = true)
     private String loginId;
+
+    @Column(name = "비밀번호", nullable = false)
     private String password;
+
+    @Column(name = "이메일", nullable = false)
     private String email;
+
+    @Column(name = "이름", nullable = false)
     private String name;
+
+    @Column(name = "닉네임", nullable = false)
     private String nickname;
+
+    @Column(name = "생년월일", nullable = false)
     private LocalDate birthDate;
 
+    @Column(name = "성별", nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    @Column(name = "포인트", nullable = false)
     private Long point;
 
     protected UserEntity() {
