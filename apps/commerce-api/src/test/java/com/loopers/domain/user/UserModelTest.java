@@ -76,5 +76,29 @@ public class UserModelTest {
                     new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", birth, "F")
             );
         }
+
+        @DisplayName("성별이 'FEMALE', 'MALE', 'UNKNOWN' 외에는 User 객체 생성에 실패한다.")
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "",
+                "F",
+                "M",
+                "Female",
+                "FeMaLe",
+                "female",
+                "FEMALE1",
+                " FEMALE",
+                "FEMALE ",
+                " FEMALE "
+
+        })
+        void throwsBadRequestException_whenInvalidGender(String gender) {
+            // arrange
+
+            // act & assert
+            assertThrows(CoreException.class, () ->
+                    new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", gender)
+            );
+        }
     }
 }

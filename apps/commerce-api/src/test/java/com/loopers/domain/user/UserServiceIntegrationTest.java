@@ -43,7 +43,7 @@ class UserServiceIntegrationTest {
         @Test
         void saveUserEntity_whenUserRegister() {
             // arrange
-            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest("la28s5d", "la28s5d@naver.com", "password", "F", "2025-01-01", "소연", "김소연");
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest("la28s5d", "la28s5d@naver.com", "password", "FEMALE", "2025-01-01", "소연", "김소연");
 
             // act
             UserEntity result = userService.register(request);
@@ -61,7 +61,7 @@ class UserServiceIntegrationTest {
                     },
                     () -> {
                         assert result != null;
-                        assertThat(result.getGender()).isEqualTo(request.gender());
+                        assertThat(result.getGender()).isEqualTo(Gender.FEMALE);
                     },
                     () -> {
                         assert result != null;
@@ -79,8 +79,8 @@ class UserServiceIntegrationTest {
         void throwsException_whenAlreadyRegisterId() {
             // arrange
             String loginId = "la28s5d";
-            userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F"));
-            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(loginId, "la28s5d@naver.com", "password", "F", "2025-01-01", "소연", "김소연");
+            userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+            UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(loginId, "la28s5d@naver.com", "password", "FEMALE", "2025-01-01", "소연", "김소연");
 
             // act
             CoreException result = assertThrows(CoreException.class, () ->
@@ -101,7 +101,7 @@ class UserServiceIntegrationTest {
         @Test
         void returnUserInfo_whenUserExists() {
             String loginId = "la28s5d";
-            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
             userRepository.save(userEntity);
 
             // act
@@ -152,7 +152,7 @@ class UserServiceIntegrationTest {
         void returnPoint_whenUserExists() {
             // arrange
             String loginId = "la28s5d";
-            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
             userRepository.save(userEntity);
 
             // act  ₩₩₩₩

@@ -54,7 +54,7 @@ class PointV1ApiE2ETest {
         void returnPoint_whenValidUser() {
             // arrange
             String loginId = "la28s5d";
-            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
             userRepository.save(userEntity);
 
             // act
@@ -103,7 +103,7 @@ class PointV1ApiE2ETest {
         void returnTotalPoint_whenExistsUserCharge1000won() {
             // arrange
             String loginId = "la28s5d";
-            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
             userRepository.save(userEntity);
 
             // act

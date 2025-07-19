@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api;
 
+import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.interfaces.api.user.UserV1Dto;
@@ -54,7 +55,7 @@ class UserV1ApiE2ETest {
         void returnUserInfo_whenValidInfoProvided() {
             // arrange
             UserV1Dto.UserRegisterRequest request = new UserV1Dto.UserRegisterRequest(
-                    "la28s5d", "la28s5d@naver.com", "password", "F", "2025-01-01", "소연", "김소연"
+                    "la28s5d", "la28s5d@naver.com", "password", "FEMALE", "2025-01-01", "소연", "김소연"
             );
 
             // act
@@ -69,7 +70,7 @@ class UserV1ApiE2ETest {
                     () -> assertThat(response.getBody().data().loginId()).isEqualTo(request.loginId()),
                     () -> assertThat(response.getBody().data().email()).isEqualTo(request.email()),
                     () -> assertThat(response.getBody().data().birthDate()).isEqualTo(request.birthDate()),
-                    () -> assertThat(response.getBody().data().gender()).isEqualTo(request.gender())
+                    () -> assertThat(response.getBody().data().gender()).isEqualTo(Gender.FEMALE)
             );
         }
 
@@ -107,7 +108,7 @@ class UserV1ApiE2ETest {
         void returnUserInfo_whenUserExists() {
             // arrange
             String loginId = "la28s5d";
-            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "F");
+            UserEntity userEntity = new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
             userRepository.save(userEntity);
 
             // act

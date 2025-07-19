@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.user;
 
 import com.loopers.application.user.UserInfo;
+import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -8,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 
 public class UserV1Dto {
-    public record UserResponse(Long id, String loginId, String email, LocalDate birthDate, String gender) {
+    public record UserResponse(Long id, String loginId, String email, LocalDate birthDate, Gender gender) {
         public static UserResponse from(UserInfo user) {
             return new UserResponse(
                     user.id(), user.loginId(), user.email(), user.birthDate(), user.gender()
@@ -25,7 +26,7 @@ public class UserV1Dto {
             String email,
             @NotBlank
             String password,
-            @Schema(example = "F")
+            @Schema(example = "FEMALE")
             String gender,
             @NotBlank
             @Schema(example = "2025-01-01")

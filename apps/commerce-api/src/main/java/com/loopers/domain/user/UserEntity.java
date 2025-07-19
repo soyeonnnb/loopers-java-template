@@ -4,6 +4,8 @@ import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.UserErrorType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
@@ -22,7 +24,9 @@ public class UserEntity extends BaseEntity {
     private String name;
     private String nickname;
     private LocalDate birthDate;
-    private String gender;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private Long point;
 
     protected UserEntity() {
@@ -42,17 +46,13 @@ public class UserEntity extends BaseEntity {
             throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
         }
 
-        if (gender == null || gender.isBlank()) {
-            throw new CoreException(UserErrorType.GENDER_CANNOT_BE_NULL);
-        }
-
         this.loginId = loginId;
         this.password = password;
         this.email = email;
         this.name = name;
         this.nickname = nickname;
         this.birthDate = stringToLocalDate(birthDate);
-        this.gender = gender;
+        this.gender = Gender.from(gender);
         this.point = 0L;
     }
 
@@ -85,7 +85,7 @@ public class UserEntity extends BaseEntity {
         return this.birthDate;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return this.gender;
     }
 
