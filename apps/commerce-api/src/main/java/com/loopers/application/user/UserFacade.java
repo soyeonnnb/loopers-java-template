@@ -33,7 +33,7 @@ public class UserFacade {
     }
 
     public Long chargeUserPoint(String userId, PointV1Dto.ChargePointRequest request) {
-        UserEntity userEntity = userService.chargePoint(userId, request);
+        UserEntity userEntity = userService.chargePoint(userId, request.point());
         return userEntity.getPoint();
     }
 }

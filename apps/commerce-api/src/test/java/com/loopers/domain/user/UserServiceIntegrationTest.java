@@ -192,7 +192,7 @@ class UserServiceIntegrationTest {
             // act
             PointV1Dto.ChargePointRequest request = new PointV1Dto.ChargePointRequest(1000L);
             CoreException result = assertThrows(CoreException.class, () ->
-                    userService.chargePoint("test", request)
+                    userService.chargePoint("test", request.point())
             );
 
             // assert
