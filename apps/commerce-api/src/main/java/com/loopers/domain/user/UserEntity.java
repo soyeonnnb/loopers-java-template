@@ -3,19 +3,14 @@ package com.loopers.domain.user;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.PointErrorType;
-import com.loopers.support.error.UserErrorType;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "user")
 public class UserEntity extends BaseEntity {
 
-    private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{1,10}$");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    private static final Pattern BIRTH_PATTERN = Pattern.compile("^(19|20)\\d\\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$");
     @Column(name = "로그인 ID", nullable = false, length = 10, unique = true)
     private String loginId;
 
@@ -46,13 +41,8 @@ public class UserEntity extends BaseEntity {
 
     public UserEntity(String loginId, String password, String email, String name, String nickname, String birthDate, String gender) {
 
-        if (loginId == null || loginId.isBlank() || !LOGIN_ID_PATTERN.matcher(loginId).matches()) {
-            throw new CoreException(UserErrorType.INVALID_LOGIN_ID);
-        }
-
-        if (email == null || email.isBlank() || !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new CoreException(UserErrorType.INVALID_EMAIL);
-        }
+        UserValidator.validateLoginId(loginId);
+        UserValidator.validateEmail(email);
 
         this.loginId = loginId;
         this.password = password;
@@ -64,12 +54,10 @@ public class UserEntity extends BaseEntity {
         this.point = 0L;
     }
 
-    private LocalDate stringToLocalDate(String input) {
-        if (input == null || input.isBlank() || !BIRTH_PATTERN.matcher(input).matches()) {
-            throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
-        }
+    private LocalDate stringToLocalDate(String birthDate) {
+        UserValidator.validateBirthDate(birthDate);
 
-        String[] inputs = input.split("-");
+        String[] inputs = birthDate.split("-");
         return LocalDate.of(Integer.parseInt(inputs[0]), Integer.parseInt(inputs[1]), Integer.parseInt(inputs[2]));
     }
 
