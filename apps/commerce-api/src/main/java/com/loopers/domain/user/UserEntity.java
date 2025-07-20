@@ -106,9 +106,9 @@ public class UserEntity extends BaseEntity {
     }
 
     public void chargePoint(Long point) {
-        this.point += point;
-        if (this.point < 0) {
+        if (point <= 0) {
             throw new CoreException(PointErrorType.POINT_MUST_BE_GREATER_THAN_0);
         }
+        this.point += point;
     }
 }

@@ -4,12 +4,15 @@ import com.loopers.application.user.UserFacade;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.PointErrorType;
 import com.loopers.support.error.UserErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -198,6 +201,29 @@ class UserServiceIntegrationTest {
             // assert
             assertAll(
                     () -> assertThat(result.getErrorType()).isEqualTo(UserErrorType.USER_NOT_EXISTS)
+            );
+        }
+
+        @DisplayName("0 이하의 금액으로 충전을 시도한 경우, 실패한다.")
+        @ParameterizedTest
+        @ValueSource(longs = {
+                -100L, 0, -1L
+
+        })
+        void throwError_whenChargePointLessThan0(Long point) {
+            // arrange
+            UserEntity user = new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE");
+            userRepository.save(user);
+
+            // act
+            PointV1Dto.ChargePointRequest request = new PointV1Dto.ChargePointRequest(point);
+            CoreException result = assertThrows(CoreException.class, () ->
+                    userService.chargePoint("la28s5d", request.point())
+            );
+
+            // assert
+            assertAll(
+                    () -> assertThat(result.getErrorType()).isEqualTo(PointErrorType.POINT_MUST_BE_GREATER_THAN_0)
             );
         }
     }

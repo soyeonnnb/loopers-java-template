@@ -73,7 +73,7 @@ public class UserModelTest {
 
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", birth, "F")
+                    new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", birth, "FEMALE")
             );
         }
 
