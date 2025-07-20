@@ -6,17 +6,25 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CoreExceptionTest {
-    @DisplayName("ErrorType 기반의 예외 생성 시, 별도의 메시지가 주어지지 않으면 ErrorType의 메시지를 사용한다.")
+    @DisplayName("BaseErrorType 기반의 예외 생성 시, 메시지를 잘 가져온다")
     @Test
-    void messageShouldBeErrorTypeMessage_whenCustomMessageIsNull() {
-        // arrange
-        ErrorType[] errorTypes = ErrorType.values();
+    void messageShouldBeErrorTypeMessage() {
+        BaseErrorType[] allErrorTypes = concatArrays(BaseErrorType.class,
+                GlobalErrorType.values(),
+                UserErrorType.values()
+        );
 
-        // act & assert
-        for (ErrorType errorType : errorTypes) {
+        for (BaseErrorType errorType : allErrorTypes) {
             CoreException exception = new CoreException(errorType);
             assertThat(exception.getMessage()).isEqualTo(errorType.getMessage());
         }
+    }
+
+    @SafeVarargs
+    private static <T> T[] concatArrays(Class<T> clazz, T[]... arrays) {
+        return java.util.Arrays.stream(arrays)
+                .flatMap(java.util.Arrays::stream)
+                .toArray(size -> (T[]) java.lang.reflect.Array.newInstance(clazz, size));
     }
 
     @DisplayName("ErrorType 기반의 예외 생성 시, 별도의 메시지가 주어지면 해당 메시지를 사용한다.")
@@ -26,7 +34,7 @@ class CoreExceptionTest {
         String customMessage = "custom message";
 
         // act
-        CoreException exception = new CoreException(ErrorType.INTERNAL_ERROR, customMessage);
+        CoreException exception = new CoreException(GlobalErrorType.INTERNAL_ERROR, customMessage);
 
         // assert
         assertThat(exception.getMessage()).isEqualTo(customMessage);
