@@ -2,6 +2,7 @@ package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.PointErrorType;
 import com.loopers.support.error.UserErrorType;
 import jakarta.persistence.*;
 
@@ -67,7 +68,7 @@ public class UserEntity extends BaseEntity {
         if (input == null || input.isBlank() || !BIRTH_PATTERN.matcher(input).matches()) {
             throw new CoreException(UserErrorType.INVALID_BIRTH_DATE);
         }
-        
+
         String[] inputs = input.split("-");
         return LocalDate.of(Integer.parseInt(inputs[0]), Integer.parseInt(inputs[1]), Integer.parseInt(inputs[2]));
     }
@@ -106,5 +107,8 @@ public class UserEntity extends BaseEntity {
 
     public void chargePoint(Long point) {
         this.point += point;
+        if (this.point < 0) {
+            throw new CoreException(PointErrorType.POINT_MUST_BE_GREATER_THAN_0);
+        }
     }
 }
