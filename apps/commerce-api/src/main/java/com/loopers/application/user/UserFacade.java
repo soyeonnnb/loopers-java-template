@@ -9,6 +9,8 @@ import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Component
 public class UserFacade {
@@ -20,16 +22,16 @@ public class UserFacade {
     }
 
     public UserInfo getUserInfo(String userId) {
-        UserEntity userEntity = userService.getUserInfo(userId);
-        if (userEntity == null) {
+        Optional<UserEntity> optionalUserEntity = userService.getUserInfo(userId);
+        if (optionalUserEntity.isEmpty()) {
             throw new CoreException(GlobalErrorType.NOT_FOUND);
         }
-        return UserInfo.from(userEntity);
+        return UserInfo.from(optionalUserEntity.get());
     }
 
     public Long getUserPoint(String userId) {
-        UserEntity userEntity = userService.getUserInfo(userId);
-        return userEntity == null ? null : userEntity.getPoint();
+        Optional<UserEntity> optionalUserEntity = userService.getUserInfo(userId);
+        return optionalUserEntity.map(UserEntity::getPoint).orElse(null);
     }
 
     public Long chargeUserPoint(String userId, PointV1Dto.ChargePointRequest request) {
