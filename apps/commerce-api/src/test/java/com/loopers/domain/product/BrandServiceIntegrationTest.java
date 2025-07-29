@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -44,11 +43,10 @@ class BrandServiceIntegrationTest {
         @Test
         void returnBrandInfo_whenValidBrandId() {
             // arrange
-            BrandEntity brandEntity = new BrandEntity();
-            String name = "test name";
-            ReflectionTestUtils.setField(brandEntity, "name", name);
-            brandEntity = brandRepository.save(brandEntity);
+            String name = "브랜드";
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity(name));
             Long id = brandEntity.getId();
+
             // act
             Optional<BrandEntity> result = brandService.getBrandInfo(id);
 
