@@ -30,4 +30,19 @@ public class LikeService {
         likeEntity.like();
         return likeRepository.save(likeEntity);
     }
+
+    @Transactional
+    public LikeEntity dislike(UserEntity userEntity, ProductEntity productEntity) {
+        if (userEntity == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
+        }
+        if (productEntity == null) {
+            throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
+        }
+        Optional<LikeEntity> optionalLikeEntity = likeRepository.findByUserAndProduct(userEntity, productEntity);
+        LikeEntity likeEntity = optionalLikeEntity.orElse(new LikeEntity(userEntity, productEntity, false));
+
+        likeEntity.dislike();
+        return likeRepository.save(likeEntity);
+    }
 }

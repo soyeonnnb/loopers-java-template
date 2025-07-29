@@ -4,10 +4,7 @@ import com.loopers.application.like.LikeFacade;
 import com.loopers.application.like.LikeInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,8 +15,15 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @Override
     @PostMapping("/{productId}")
-    public ApiResponse<LikeV1Dto.LikeResponse> getLikeInfo(@RequestHeader("X-USER-ID") String userId, Long productId) {
+    public ApiResponse<LikeV1Dto.LikeResponse> like(@RequestHeader("X-USER-ID") String userId, Long productId) {
         LikeInfo likeInfo = likeFacade.like(userId, productId);
+        return ApiResponse.success(LikeV1Dto.LikeResponse.from(likeInfo));
+    }
+
+    @Override
+    @DeleteMapping("/{productId}")
+    public ApiResponse<LikeV1Dto.LikeResponse> dislike(String userId, Long productId) {
+        LikeInfo likeInfo = likeFacade.dislike(userId, productId);
         return ApiResponse.success(LikeV1Dto.LikeResponse.from(likeInfo));
     }
 }

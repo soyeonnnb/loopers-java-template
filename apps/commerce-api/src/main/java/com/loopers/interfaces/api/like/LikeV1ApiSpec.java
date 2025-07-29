@@ -15,5 +15,12 @@ public interface LikeV1ApiSpec {
             description = "상품을 좋아요 합니다."
     )
     @RequireUserId
-    ApiResponse<LikeV1Dto.LikeResponse> getLikeInfo(@RequestHeader(value = "X-USER-ID", required = false) String userId, @PathVariable("productId") Long productId);
+    ApiResponse<LikeV1Dto.LikeResponse> like(@RequestHeader(value = "X-USER-ID", required = false) String userId, @PathVariable("productId") Long productId);
+
+    @Operation(
+            summary = "상품 좋아요 취소",
+            description = "상품을 좋아요 취소합니다."
+    )
+    @RequireUserId
+    ApiResponse<LikeV1Dto.LikeResponse> dislike(@RequestHeader(value = "X-USER-ID", required = false) String userId, @PathVariable("productId") Long productId);
 }
