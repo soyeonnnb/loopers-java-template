@@ -1,6 +1,5 @@
 package com.loopers.domain.like;
 
-import com.loopers.application.product.BrandFacade;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -32,12 +32,12 @@ class LikeServiceIntegrationTest {
     private LikeRepository likeRepository;
     @Autowired
     private LikeService likeService;
+    @Autowired
+    private ProductCountRepository productCountRepository;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
-    @Autowired
-    private BrandFacade brandFacade;
 
     @AfterEach
     void tearDown() {
@@ -54,6 +54,9 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
@@ -81,6 +84,8 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, false));
 
@@ -108,6 +113,8 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
             // act
             LikeEntity result = likeService.like(userEntity, productEntity);
@@ -133,6 +140,8 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
@@ -160,6 +169,8 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, false));
 
@@ -187,6 +198,8 @@ class LikeServiceIntegrationTest {
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
             // act
             LikeEntity result = likeService.dislike(userEntity, productEntity);
@@ -231,6 +244,10 @@ class LikeServiceIntegrationTest {
             ProductEntity productEntity2 = productRepository.save(new ProductEntity(brandEntity, "상품명2", 200L, 200L, ProductStatus.SALE, "설명"));
             ProductEntity productEntity3 = productRepository.save(new ProductEntity(brandEntity, "상품명3", 300L, 300L, ProductStatus.SALE, "설명"));
             ProductEntity productEntity4 = productRepository.save(new ProductEntity(brandEntity, "상품명4", 400L, 400L, ProductStatus.SALE, "설명"));
+            productCountRepository.save(new ProductCountEntity(productEntity1));
+            productCountRepository.save(new ProductCountEntity(productEntity2));
+            productCountRepository.save(new ProductCountEntity(productEntity3));
+            productCountRepository.save(new ProductCountEntity(productEntity4));
 
             LikeEntity likeEntity1 = likeRepository.save(new LikeEntity(userEntity, productEntity1, true));
             LikeEntity likeEntity2 = likeRepository.save(new LikeEntity(userEntity, productEntity2, true));

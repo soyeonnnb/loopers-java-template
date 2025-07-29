@@ -2,6 +2,8 @@ package com.loopers.domain.product;
 
 import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.ProductInfo;
+import com.loopers.domain.like.LikeEntity;
+import com.loopers.domain.like.LikeRepository;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.support.error.CoreException;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +41,12 @@ class ProductFacadeTest {
     @Autowired
     private BrandRepository brandRepository;
 
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Autowired
+    private ProductCountRepository productCountRepository;
+
     @AfterEach
     void tearDown() {
         databaseCleanUp.truncateAllTables();
@@ -58,10 +67,12 @@ class ProductFacadeTest {
 
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
                 ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+
                 Long id = productEntity.getId();
 
-                // TODO: 좋아요 여부 추가
-
+                likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
                 // act
                 ProductInfo productInfo = productFacade.getProductInfo(loginId, id);
@@ -97,22 +108,94 @@ class ProductFacadeTest {
                             assert productInfo != null;
                             assertEquals(productInfo.brandInfo().name(), brandEntity.getName());
                         },
-                        // TODO: 좋아요 여부 추가
                         () -> {
                             assert productInfo != null;
                             assertEquals(productInfo.isLike(), true);
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.totalLikes(), 1L);
                         }
                 );
             }
 
             // TODO: 좋아요X + 로그인 상태 추가
+            @DisplayName("로그인을 하고 좋아요를 한 경우, 상품 정보가 반환된다.")
+            @Test
+            void returnBrandInfo_whenValidProductIdAndDisLike() {
+                // arrange
+                String loginId = "la28s5d";
+                userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+                UserEntity userEntity = userRepository.save(new UserEntity(loginId + "1", "password", "la28s5d2@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+
+                BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
+                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+
+                Long id = productEntity.getId();
+
+                likeRepository.save(new LikeEntity(userEntity, productEntity, true));
+
+                // act
+                ProductInfo productInfo = productFacade.getProductInfo(loginId, id);
+
+                // assert
+                assertAll(
+                        () -> assertThat(productInfo).isNotNull(),
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.id(), productEntity.getId());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.name(), productEntity.getName());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.price(), productEntity.getPrice());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.quantity(), productEntity.getQuantity());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.description(), productEntity.getDescription());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.brandInfo().id(), brandEntity.getId());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.brandInfo().name(), brandEntity.getName());
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.isLike(), false);
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.totalLikes(), 1L);
+                        }
+                );
+            }
+
             @DisplayName("로그아웃을 한 경우, 상품 정보가 반환된다.")
             @Test
             void returnBrandInfo_whenValidProductIdAndLogout() {
                 // arrange
+                String loginId = "la28s5d";
+                UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
                 ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
                 Long id = productEntity.getId();
+
+                likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
                 // act
                 ProductInfo productInfo = productFacade.getProductInfo(null, id);
@@ -151,6 +234,10 @@ class ProductFacadeTest {
                         () -> {
                             assert productInfo != null;
                             assertEquals(productInfo.isLike(), false);
+                        },
+                        () -> {
+                            assert productInfo != null;
+                            assertEquals(productInfo.totalLikes(), 1L);
                         }
                 );
             }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +30,9 @@ class ProductServiceIntegrationTest {
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
+    @Autowired
+    private ProductCountRepository productCountRepository;
+
     @AfterEach
     void tearDown() {
         databaseCleanUp.truncateAllTables();
@@ -43,6 +47,9 @@ class ProductServiceIntegrationTest {
             // arrange
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("test name"));
             ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품명", 100L, 100L, ProductStatus.SALE, "설명"));
+            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+
             Long id = productEntity.getId();
 
             // act
@@ -58,7 +65,8 @@ class ProductServiceIntegrationTest {
                     () -> assertEquals(result.get().getBrand().getId(), brandEntity.getId()),
                     () -> assertEquals(result.get().getName(), productEntity.getName()),
                     () -> assertEquals(result.get().getPrice(), productEntity.getPrice()),
-                    () -> assertEquals(result.get().getQuantity(), productEntity.getQuantity())
+                    () -> assertEquals(result.get().getQuantity(), productEntity.getQuantity()),
+                    () -> assertEquals(result.get().getProductCount().getLikeCount(), 0L)
             );
         }
 
