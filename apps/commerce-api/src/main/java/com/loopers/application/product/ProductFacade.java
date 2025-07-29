@@ -19,11 +19,11 @@ public class ProductFacade {
 
     public ProductInfo getProductInfo(String userId, Long productId) {
         if (productId == null) {
-            throw new CoreException(GlobalErrorType.BAD_REQUEST);
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 ID가 존재하지 않습니다.");
         }
         Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
         if (optionalProductEntity.isEmpty()) {
-            throw new CoreException(GlobalErrorType.NOT_FOUND);
+            throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 ID에 해당하는 데이터가 없습니다.");
         }
         // ToDo: 좋아요 기능 연결
         Optional<UserEntity> optionalUserEntity = userService.getUserInfo(userId);

@@ -4,7 +4,7 @@ import com.loopers.domain.product.BrandEntity;
 import com.loopers.domain.product.BrandRepository;
 import com.loopers.interfaces.api.product.BrandV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
-import com.loopers.support.error.ProductErrorType;
+import com.loopers.support.error.GlobalErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +16,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,8 +89,8 @@ class BrandV1ApiE2ETest {
 
             // assert
             assertAll(
-                    () -> assertTrue(response.getStatusCode().is4xxClientError()),
-                    () -> assertThat(response.getBody().meta().errorCode()).isEqualTo(ProductErrorType.BRAND_ID_CANNOT_BE_NULL.getCode())
+                    () -> assertTrue(response.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)),
+                    () -> assertThat(response.getBody().meta().errorCode()).isEqualTo(GlobalErrorType.NOT_FOUND.getCode())
             );
         }
 
