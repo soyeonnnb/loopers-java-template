@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,5 +45,13 @@ public class LikeService {
 
         likeEntity.dislike();
         return likeRepository.save(likeEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LikeEntity> getUserLikeList(UserEntity userEntity) {
+        if (userEntity == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
+        }
+        return likeRepository.findAllByUserAndIsLikeIsTrue(userEntity);
     }
 }

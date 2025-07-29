@@ -18,4 +18,5 @@ public class LikeV1Dto {
             return new LikeV1Dto.LikeResponse(likeInfo.id(), likeInfo.userInfo().id(), likeInfo.userInfo().loginId(), likeInfo.productInfo().id(), likeInfo.productInfo().name(), likeInfo.isLike());
         }
     }
+    
 }

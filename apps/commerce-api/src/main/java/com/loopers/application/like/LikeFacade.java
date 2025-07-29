@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.product.ProductInfo;
 import com.loopers.domain.like.LikeEntity;
 import com.loopers.domain.like.LikeService;
 import com.loopers.domain.product.ProductEntity;
@@ -11,6 +12,7 @@ import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -57,5 +59,19 @@ public class LikeFacade {
 
         LikeEntity likeEntity = likeService.dislike(optionalUserEntity.get(), optionalProductEntity.get());
         return LikeInfo.from(likeEntity);
+    }
+
+    public List<ProductInfo> getLikeList(String userId) {
+        if (userId == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
+        }
+
+        Optional<UserEntity> optionalUserEntity = userService.getUserInfo(userId);
+        if (optionalUserEntity.isEmpty()) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
+        }
+
+        List<LikeEntity> likeEntityList = likeService.getUserLikeList(optionalUserEntity.get());
+        return likeEntityList.stream().map(LikeEntity::getProduct).map(ProductInfo::from).toList();
     }
 }

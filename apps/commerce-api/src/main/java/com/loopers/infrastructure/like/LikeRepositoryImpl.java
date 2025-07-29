@@ -7,6 +7,7 @@ import com.loopers.domain.user.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -24,5 +25,10 @@ public class LikeRepositoryImpl implements LikeRepository {
     @Override
     public Optional<LikeEntity> findByUserAndProduct(UserEntity userEntity, ProductEntity productEntity) {
         return likeJpaRepository.findByUserAndProduct(userEntity, productEntity);
+    }
+
+    @Override
+    public List<LikeEntity> findAllByUserAndIsLikeIsTrue(UserEntity userEntity) {
+        return likeJpaRepository.findAllByUserAndIsLikeIsTrue(userEntity);
     }
 }
