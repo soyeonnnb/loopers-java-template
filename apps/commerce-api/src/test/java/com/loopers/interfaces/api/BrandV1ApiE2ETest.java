@@ -17,7 +17,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -57,8 +56,7 @@ class BrandV1ApiE2ETest {
         void returnBrandInfo_whenValidBrandIdProvided() {
             // arrange
             String name = "test name";
-            BrandEntity brandEntity = new BrandEntity();
-            ReflectionTestUtils.setField(brandEntity, "name", name);
+            BrandEntity brandEntity = new BrandEntity(name);
             brandEntity = brandRepository.save(brandEntity);
             Long id = brandEntity.getId();
             String url = ENDPOINT + "/" + brandEntity.getId();

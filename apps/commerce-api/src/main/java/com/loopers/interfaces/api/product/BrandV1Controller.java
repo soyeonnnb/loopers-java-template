@@ -15,13 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class BrandV1Controller implements BrandV1ApiSpec {
 
     private final BrandFacade brandFacade;
-//    @Override
-//    @PostMapping("/charge")
-//    @RequireUserId
-//    public ApiResponse<BrandV1Dto.PointResponse> chargePoint(@RequestHeader("X-USER-ID") String userId, @RequestBody BrandV1Dto.ChargePointRequest request) {
-//        Long userPointInfo = userFacade.chargeUserPoint(userId, request);
-//        return ApiResponse.success(BrandV1Dto.PointResponse.from(userPointInfo));
-//    }
 
     @Override
     @GetMapping("/{brandId}")
