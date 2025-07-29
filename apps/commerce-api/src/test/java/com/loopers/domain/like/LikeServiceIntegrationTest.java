@@ -119,4 +119,82 @@ class LikeServiceIntegrationTest {
         }
     }
 
+    @DisplayName("좋아요 취소할 때,")
+    @Nested
+    class DisLike {
+        @DisplayName("이전에 좋아요 했다면, 좋아요하지 않은 객체가 반환된다.")
+        @Test
+        void returnLikeInfo_whenAlreadyLike() {
+            // arrange
+            UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+
+            LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, true));
+
+            // act
+            LikeEntity result = likeService.dislike(userEntity, productEntity);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNotNull(),
+                    () -> {
+                        assert result != null;
+                        assertEquals(likeEntity.getId(), result.getId());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertFalse(result.getIsLike());
+                    }
+            );
+        }
+
+        @DisplayName("이미 좋아요를 하지 않은적이 있다면, 좋아요하지 않은 객체가 반환된다.")
+        @Test
+        void returnLikeInfo_whenDisLike() {
+            // arrange
+            UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+
+            LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, false));
+
+            // act
+            LikeEntity result = likeService.dislike(userEntity, productEntity);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNotNull(),
+                    () -> {
+                        assert result != null;
+                        assertEquals(likeEntity.getId(), result.getId());
+                    },
+                    () -> {
+                        assert result != null;
+                        assertFalse(result.getIsLike());
+                    }
+            );
+        }
+
+        @DisplayName("이미 좋아요를 한 적이 없다면, 좋아요되지 않은 객체가 반환된다.")
+        @Test
+        void returnLikeInfo_whenHaventLiked() {
+            // arrange
+            UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+
+            // act
+            LikeEntity result = likeService.dislike(userEntity, productEntity);
+
+            // assert
+            assertAll(
+                    () -> assertThat(result).isNotNull(),
+                    () -> {
+                        assert result != null;
+                        assertFalse(result.getIsLike());
+                    }
+            );
+        }
+    }
 }
