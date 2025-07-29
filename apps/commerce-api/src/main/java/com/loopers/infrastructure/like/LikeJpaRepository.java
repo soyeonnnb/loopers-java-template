@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LikeJpaRepository extends JpaRepository<LikeEntity, Long> {
+    @EntityGraph(attributePaths = {"user", "product"})
     Optional<LikeEntity> findById(Long id);
 
+    @EntityGraph(attributePaths = {"user", "product"})
     Optional<LikeEntity> findByUserAndProduct(UserEntity userEntity, ProductEntity productEntity);
 
     @EntityGraph(attributePaths = {"product"})

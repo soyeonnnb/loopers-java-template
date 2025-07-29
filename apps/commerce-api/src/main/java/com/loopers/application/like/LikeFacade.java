@@ -38,7 +38,7 @@ public class LikeFacade {
         }
 
         LikeEntity likeEntity = likeService.like(optionalUserEntity.get(), optionalProductEntity.get());
-        return LikeInfo.from(likeEntity);
+        return LikeInfo.from(likeEntity, optionalUserEntity.get(), optionalProductEntity.get());
     }
 
 
@@ -58,7 +58,8 @@ public class LikeFacade {
         }
 
         LikeEntity likeEntity = likeService.dislike(optionalUserEntity.get(), optionalProductEntity.get());
-        return LikeInfo.from(likeEntity);
+
+        return LikeInfo.from(likeEntity, optionalUserEntity.get(), optionalProductEntity.get());
     }
 
     public List<ProductInfo> getLikeList(String userId) {
@@ -72,6 +73,7 @@ public class LikeFacade {
         }
 
         List<LikeEntity> likeEntityList = likeService.getUserLikeList(optionalUserEntity.get());
+
         return likeEntityList.stream().map(LikeEntity::getProduct).map(ProductInfo::from).toList();
     }
 }

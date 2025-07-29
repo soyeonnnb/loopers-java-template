@@ -41,6 +41,9 @@ public class ProductEntity extends BaseEntity {
     @Column(nullable = false)
     private String description;
 
+    @OneToOne(mappedBy = "product", fetch = FetchType.LAZY)
+    private ProductCountEntity productCount;
+
     protected ProductEntity() {
     }
 
