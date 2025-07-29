@@ -3,6 +3,7 @@ package com.loopers.domain.product;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -11,6 +12,7 @@ import jakarta.persistence.Table;
 @Table(name = "brand")
 public class BrandEntity extends BaseEntity {
 
+    @Schema(name = "브랜드 명")
     @Column(nullable = false)
     private String name;
 

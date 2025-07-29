@@ -4,6 +4,7 @@ package com.loopers.domain.product;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -12,24 +13,30 @@ import lombok.Getter;
 @Table(name = "product")
 public class ProductEntity extends BaseEntity {
 
+    @Schema(name = "브랜드")
     @ManyToOne
-    @JoinColumn(name = "브랜드", nullable = false)
+    @JoinColumn(nullable = false)
     private BrandEntity brand;
 
-    @Column(name = "상품명", nullable = false)
+    @Schema(name = "상품명")
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "상품가격", nullable = false)
+    @Schema(name = "상품가격")
+    @Column(nullable = false)
     private Long price;
 
-    @Column(name = "재고", nullable = false)
+    @Schema(name = "재고")
+    @Column(nullable = false)
     private Long quantity;
 
+    @Schema(name = "상품 상태")
     @Enumerated(EnumType.STRING)
-    @Column(name = "상품 상태", nullable = false)
+    @Column(nullable = false)
     private ProductStatus status;
 
-    @Column(name = "상품 설명", nullable = false)
+    @Schema(name = "상품 설명")
+    @Column(nullable = false)
     private String description;
 
     protected ProductEntity() {

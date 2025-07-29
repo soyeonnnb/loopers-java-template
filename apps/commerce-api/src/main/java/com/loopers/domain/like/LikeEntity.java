@@ -5,6 +5,7 @@ import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -13,12 +14,15 @@ import lombok.Getter;
 @Table(name = "likes")
 public class LikeEntity extends BaseEntity {
 
+    @Schema(name = "좋아요 유저")
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
+    @Schema(name = "좋아요 상품")
     @ManyToOne(fetch = FetchType.LAZY)
     private ProductEntity product;
 
+    @Schema(name = "좋아요 여부")
     @Column(nullable = false)
     private Boolean isLike;
 

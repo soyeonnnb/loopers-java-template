@@ -3,6 +3,7 @@ package com.loopers.domain.user;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.PointErrorType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -11,29 +12,37 @@ import java.time.LocalDate;
 @Table(name = "user")
 public class UserEntity extends BaseEntity {
 
-    @Column(name = "로그인 ID", nullable = false, length = 10, unique = true)
+    @Schema(name = "로그인 ID")
+    @Column(nullable = false, length = 10, unique = true)
     private String loginId;
 
-    @Column(name = "비밀번호", nullable = false)
+    @Schema(name = "비밀번호")
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "이메일", nullable = false)
+    @Schema(name = "이메일")
+    @Column(nullable = false)
     private String email;
 
-    @Column(name = "이름", nullable = false)
+    @Schema(name = "이름")
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "닉네임", nullable = false)
+    @Schema(name = "닉네임")
+    @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "생년월일", nullable = false)
+    @Schema(name = "생년월일")
+    @Column(nullable = false)
     private LocalDate birthDate;
 
-    @Column(name = "성별", nullable = false)
+    @Schema(name = "성별")
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "포인트", nullable = false)
+    @Schema(name = "포인트")
+    @Column(nullable = false)
     private Long point;
 
     protected UserEntity() {
