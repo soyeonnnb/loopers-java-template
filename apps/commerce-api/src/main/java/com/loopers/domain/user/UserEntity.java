@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user")
@@ -107,5 +108,18 @@ public class UserEntity extends BaseEntity {
             throw new CoreException(PointErrorType.POINT_MUST_BE_GREATER_THAN_0);
         }
         this.point += point;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserEntity that = (UserEntity) o;
+        return Objects.equals(loginId, that.loginId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(loginId);
     }
 }

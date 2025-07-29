@@ -8,6 +8,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "brand")
 public class BrandEntity extends BaseEntity {
@@ -29,5 +31,19 @@ public class BrandEntity extends BaseEntity {
 
     public String getName() {
         return this.name;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BrandEntity that = (BrandEntity) o;
+        return Objects.equals(this.getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getId());
     }
 }

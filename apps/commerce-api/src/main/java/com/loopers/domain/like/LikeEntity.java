@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @Table(name = "likes")
@@ -50,5 +52,18 @@ public class LikeEntity extends BaseEntity {
 
     public void dislike() {
         this.isLike = false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LikeEntity that = (LikeEntity) o;
+        return Objects.equals(user, that.user) && Objects.equals(product, that.product);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, product);
     }
 }
