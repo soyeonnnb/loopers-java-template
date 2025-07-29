@@ -14,3 +14,4 @@ public enum PointErrorType implements BaseErrorType {
     private final String code;
     private final String message;
 }
+
