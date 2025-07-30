@@ -23,6 +23,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -98,7 +100,7 @@ class ProductV1ApiE2ETest {
                 String loginId = "la28s5d";
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
                 ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -131,7 +133,7 @@ class ProductV1ApiE2ETest {
                 String loginId = "la28s5d";
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
                 ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -158,7 +160,7 @@ class ProductV1ApiE2ETest {
             void returnProductInfo_whenLogout() {
                 // arrange
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
                 ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
                 Long id = productEntity.getId();

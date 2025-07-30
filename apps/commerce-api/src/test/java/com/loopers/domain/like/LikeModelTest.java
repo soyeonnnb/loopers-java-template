@@ -9,6 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LikeModelTest {
@@ -31,7 +33,7 @@ public class LikeModelTest {
         void throwsBadRequestException_whenUserIsNull() {
             // arrange
             BrandEntity brandEntity = new BrandEntity("브랜드");
-            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명");
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
             // act & assert
             assertThrows(CoreException.class, () ->
                     new LikeEntity(null, productEntity, true)

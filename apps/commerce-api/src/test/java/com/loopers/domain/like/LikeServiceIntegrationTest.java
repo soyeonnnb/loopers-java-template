@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +54,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -83,7 +84,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -112,7 +113,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -139,7 +140,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -168,7 +169,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -197,7 +198,7 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
 
@@ -240,10 +241,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity1 = productRepository.save(new ProductEntity(brandEntity, "상품명1", 100L, 100L, ProductStatus.SALE, "설명"));
-            ProductEntity productEntity2 = productRepository.save(new ProductEntity(brandEntity, "상품명2", 200L, 200L, ProductStatus.SALE, "설명"));
-            ProductEntity productEntity3 = productRepository.save(new ProductEntity(brandEntity, "상품명3", 300L, 300L, ProductStatus.SALE, "설명"));
-            ProductEntity productEntity4 = productRepository.save(new ProductEntity(brandEntity, "상품명4", 400L, 400L, ProductStatus.SALE, "설명"));
+            ProductEntity productEntity1 = productRepository.save(new ProductEntity(brandEntity, "상품명1", 100L, 100L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
+            ProductEntity productEntity2 = productRepository.save(new ProductEntity(brandEntity, "상품명2", 200L, 200L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
+            ProductEntity productEntity3 = productRepository.save(new ProductEntity(brandEntity, "상품명3", 300L, 300L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
+            ProductEntity productEntity4 = productRepository.save(new ProductEntity(brandEntity, "상품명4", 400L, 400L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
             productCountRepository.save(new ProductCountEntity(productEntity1));
             productCountRepository.save(new ProductCountEntity(productEntity2));
             productCountRepository.save(new ProductCountEntity(productEntity3));

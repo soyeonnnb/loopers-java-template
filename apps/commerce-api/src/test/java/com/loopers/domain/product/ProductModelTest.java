@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ProductModelTest {
@@ -15,10 +17,10 @@ public class ProductModelTest {
         @Test
         void throwsBadRequestException_whenBrandIsNull() {
             // arrange
-            BrandEntity brandEntity = null;
+
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "상품명", 1L, 1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(null, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -29,7 +31,7 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, null, 1L, 1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, null, 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -40,7 +42,7 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "", 1L, 1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, "", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -51,7 +53,7 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "상품명", null, 1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, "상품", null, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -62,7 +64,7 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "상품명", -1L, 1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, "상품", -1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -73,7 +75,7 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "상품명", 1L, null, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, "상품", 1L, null, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
 
@@ -84,8 +86,9 @@ public class ProductModelTest {
             BrandEntity brandEntity = new BrandEntity("브랜드");
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new ProductEntity(brandEntity, "상품명", 1L, -1L, ProductStatus.SALE, "상품 설명")
+                    new ProductEntity(brandEntity, "상품", 1L, -1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
             );
         }
     }
+
 }

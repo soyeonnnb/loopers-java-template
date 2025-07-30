@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -41,13 +42,17 @@ public class ProductEntity extends BaseEntity {
     @Column(nullable = false)
     private String description;
 
+    @Schema(name = "상품 개시일")
+    @Column(nullable = false)
+    private LocalDateTime saleStartAt;
+
     @OneToOne(mappedBy = "product", fetch = FetchType.LAZY)
     private ProductCountEntity productCount;
 
     protected ProductEntity() {
     }
 
-    public ProductEntity(BrandEntity brandEntity, String name, Long price, Long quantity, ProductStatus status, String description) {
+    public ProductEntity(BrandEntity brandEntity, String name, Long price, Long quantity, ProductStatus status, String description, LocalDateTime saleStartAt) {
         if (brandEntity == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "브랜드는 NULL 일 수 없습니다.");
         }
@@ -69,6 +74,7 @@ public class ProductEntity extends BaseEntity {
         this.quantity = quantity;
         this.status = status;
         this.description = description;
+        this.saleStartAt = saleStartAt;
     }
 
     @Override
