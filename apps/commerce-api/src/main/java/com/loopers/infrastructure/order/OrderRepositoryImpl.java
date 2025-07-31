@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -24,5 +25,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public Page<OrderEntity> findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(UserEntity user, ZonedDateTime startDate, ZonedDateTime endDate, Pageable pageable) {
         return orderJpaRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(user, startDate, endDate, pageable);
+    }
+
+    @Override
+    public Optional<OrderEntity> findById(Long orderId) {
+        return orderJpaRepository.findById(orderId);
     }
 }

@@ -61,4 +61,24 @@ public class OrderFacade {
         return orderEntityPages.get().map(OrderInfo::from).toList();
     }
 
+    public OrderInfo getUserOrder(String userId, Long orderId) {
+        // 1. 사용자 정보 확인
+        if (userId == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
+        }
+        UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
+
+        // 2. 주문 정보 조회
+        if (orderId == null) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "주문 ID는 필수입니다.");
+        }
+        OrderEntity orderEntity = orderService.getOrder(orderId).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "주문 정보가 없습니다."));
+
+        // 3. 사용자 주문인지 확인
+        if (!orderEntity.getUser().getId().equals(user.getId())) {
+            throw new CoreException(GlobalErrorType.FORBIDDEN, "다른 사용자의 주문 정보입니다.");
+        }
+
+        return OrderInfo.from(orderEntity);
+    }
 }

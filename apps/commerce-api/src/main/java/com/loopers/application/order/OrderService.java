@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -94,5 +95,9 @@ public class OrderService {
 
         Pageable pageable = PageRequest.of(page, size);
         return orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(user, startDate.atStartOfDay(systemZone), endDate.plusDays(1L).atStartOfDay(systemZone), pageable);
+    }
+
+    public Optional<OrderEntity> getOrder(Long orderId) {
+        return orderRepository.findById(orderId);
     }
 }

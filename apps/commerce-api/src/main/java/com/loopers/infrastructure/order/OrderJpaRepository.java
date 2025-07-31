@@ -10,10 +10,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 
 public interface OrderJpaRepository extends JpaRepository<OrderEntity, Long> {
     OrderEntity save(OrderEntity order);
+
+    @EntityGraph(attributePaths = {"user", "items", "items.product", "items.product.brand"})
+    Optional<OrderEntity> findById(Long id);
 
     @EntityGraph(attributePaths = {"items", "items.product"})
     @Query("SELECT orders FROM OrderEntity orders WHERE orders.user = :user AND orders.createdAt >= :startDate AND orders.createdAt < :endDate ORDER BY orders.createdAt DESC")
