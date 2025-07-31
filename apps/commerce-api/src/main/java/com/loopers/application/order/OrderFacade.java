@@ -1,5 +1,6 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserEntity;
@@ -8,9 +9,11 @@ import com.loopers.interfaces.api.order.OrderV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +41,24 @@ public class OrderFacade {
         }
 
         return OrderInfo.from(orderService.order(user, itemList, request.totalPrice()));
+    }
+
+    public List<OrderInfo> getUserInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
+        // 1. 사용자 정보 확인
+        if (userId == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
+        }
+        UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
+
+        // 2. 시작일 / 종료일 확인
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.");
+        }
 
 
+        // 3. 주문 리스트 조회
+        Page<OrderEntity> orderEntityPages = orderService.getUserOrderList(user, startDate, endDate, size, page);
+        return orderEntityPages.get().map(OrderInfo::from).toList();
     }
 
 }

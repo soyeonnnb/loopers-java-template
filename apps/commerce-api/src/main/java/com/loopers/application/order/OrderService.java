@@ -8,9 +8,14 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -51,5 +56,43 @@ public class OrderService {
             orderEntity.addOrderItem(orderItemEntity);
         }
         return orderRepository.save(orderEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderEntity> getUserOrderList(UserEntity user, LocalDate startDate, LocalDate endDate, Integer size, Integer page) {
+        // 0. 파라미터 값 체크
+        if (user == null) {
+            throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
+        }
+
+        // 1. 시작일 / 종료일 확인
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.");
+        }
+
+        if (startDate == null) {
+            startDate = LocalDate.of(1, 1, 1);
+        }
+
+        if (endDate == null) {
+            endDate = LocalDate.of(9999, 12, 31);
+        }
+
+        ZoneId systemZone = ZoneId.systemDefault();
+
+        // 2. page 생성
+        if (page == null) {
+            page = 0;
+        } else if (page < 0) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "페이지는 최소 0 이상이여야 합니다.");
+        }
+        if (size == null) {
+            size = 20;
+        } else if (size < 1) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "페이지 크기는 최소 1 이상이여야 합니다.");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(user, startDate.atStartOfDay(systemZone), endDate.plusDays(1L).atStartOfDay(systemZone), pageable);
     }
 }
