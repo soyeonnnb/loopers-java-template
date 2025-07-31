@@ -1,5 +1,8 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.order.OrderEntity;
+import com.loopers.domain.order.OrderItemEntity;
+import com.loopers.domain.order.OrderItemRepository;
 import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
@@ -9,10 +12,14 @@ import com.loopers.support.error.GlobalErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +36,9 @@ class OrderServiceIntegrationTest {
     private OrderRepository orderRepository;
 
     @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -42,6 +52,7 @@ class OrderServiceIntegrationTest {
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+
 
     @AfterEach
     void tearDown() {
@@ -196,5 +207,130 @@ class OrderServiceIntegrationTest {
         }
 
 
+    }
+
+    @DisplayName("사용자의 주문 리스트를 조회할 때,")
+    @Nested
+    class GetUserInfoList {
+
+        @DisplayName("정상적으로 검색이 된다.")
+        @Test
+        void success_whenValidParameter() {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
+            UserEntity otherUserEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId + "1").create());
+
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            List<ProductEntity> productEntityList = productRepository.saveAll(Instancio.ofList(ProductEntity.class)
+                    .size(20)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .create());
+            for (int i = 0; i < 20; i++) {
+                ProductEntity productEntity = productEntityList.get(i);
+                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            }
+
+            for (int i = 0; i < 20; i++) {
+                OrderEntity order = orderRepository.save(new OrderEntity(userEntity, 100L));
+                OrderEntity otherOrder = orderRepository.save(new OrderEntity(otherUserEntity, 100L));
+                for (int j = 0; j < (i % 5) + 1; j++) {
+                    int productIndex = i % productEntityList.size();
+                    Long quantity = (long) (j + 1);
+                    orderItemRepository.save(new OrderItemEntity(order, productEntityList.get(productIndex), quantity));
+                    orderItemRepository.save(new OrderItemEntity(otherOrder, productEntityList.get(productIndex), quantity));
+                }
+            }
+
+
+            // act
+            Page<OrderEntity> result = orderService.getUserOrderList(userEntity, null, null, 30, 0);
+
+            // assert
+            assertAll(
+                    () -> assertEquals(1, result.getTotalPages()),
+                    () -> assertEquals(20, result.getTotalElements()),
+                    () -> assertEquals(20, result.getContent().size()),
+                    () -> assertTrue(result.getContent().stream()
+                            .allMatch(order -> order.getUser().getId().equals(userEntity.getId())))
+            );
+        }
+
+        @DisplayName("사용자가 null이면 401 에러가 발생한다.")
+        @Test
+        void throws401Exception_whenUserIdIsNull() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderService.getUserOrderList(null, null, null, 0, 1));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.UNAUTHORIZED),
+                    () -> assertEquals(exception.getCustomMessage(), "사용자 정보가 없습니다.")
+            );
+        }
+
+
+        @DisplayName("검색 시작 날짜가 검색 마지막 날짜 이후면 400 에러가 발생한다.")
+        @Test
+        void throws400Exception_whenInvalidDateRange() {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderService.getUserOrderList(userEntity, LocalDate.of(2025, 1, 1), LocalDate.of(2024, 1, 1), 0, 1));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.BAD_REQUEST),
+                    () -> assertEquals(exception.getCustomMessage(), "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.")
+            );
+        }
+
+        @DisplayName("size가 0 이하이면 에러가 발생한다.")
+        @ParameterizedTest
+        @ValueSource(ints = {
+                -1, 0
+        })
+        void throws400Exception_whenSizeLessThanEquals0(int size) {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
+
+            // act
+            CoreException result = assertThrows(CoreException.class, () ->
+                    orderService.getUserOrderList(userEntity, null, null, size, 1)
+            );
+
+            // assert
+            assertAll(
+                    () -> assertEquals(result.getErrorType(), GlobalErrorType.BAD_REQUEST),
+                    () -> assertEquals(result.getCustomMessage(), "페이지 크기는 최소 1 이상이여야 합니다.")
+            );
+        }
+
+        @DisplayName("page가 0 미만이면 에러가 발생한다.")
+        @Test
+        void throws400Exception_whenPageLessThan0() {
+            // arrange
+            String loginId = "la28s5d";
+            UserEntity userEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
+
+            // act
+            CoreException result = assertThrows(CoreException.class, () ->
+                    orderService.getUserOrderList(userEntity, null, null, 1, -1)
+            );
+
+            // assert
+            assertAll(
+                    () -> assertEquals(result.getErrorType(), GlobalErrorType.BAD_REQUEST),
+                    () -> assertEquals(result.getCustomMessage(), "페이지는 최소 0 이상이여야 합니다.")
+            );
+        }
     }
 }

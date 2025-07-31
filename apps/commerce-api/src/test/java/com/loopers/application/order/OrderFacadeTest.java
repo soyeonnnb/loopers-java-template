@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.instancio.Select.field;
@@ -79,6 +80,44 @@ class OrderFacadeTest {
             assertAll(
                     () -> assertEquals(exception.getErrorType(), GlobalErrorType.NOT_FOUND),
                     () -> assertEquals(exception.getCustomMessage(), "상품 정보가 없습니다.")
+            );
+        }
+    }
+
+    @DisplayName("사용자의 주문 리스트를 조회할 때,")
+    @Nested
+    class GetUserInfoList {
+
+        @DisplayName("사용자가 null이면 401 에러가 발생한다.")
+        @Test
+        void throws401Exception_whenUserIdIsNull() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserInfoList(null, null, null, 0, 1));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.UNAUTHORIZED),
+                    () -> assertEquals(exception.getCustomMessage(), "사용자 ID 정보가 없습니다.")
+            );
+        }
+
+
+        @DisplayName("검색 시작 날짜가 검색 마지막 날짜 이후면 400 에러가 발생한다.")
+        @Test
+        void throws400Exception_whenInvalidDateRange() {
+            // arrange
+            String loginId = "la28s5d";
+            userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserInfoList(loginId, LocalDate.of(2025, 1, 1), LocalDate.of(2024, 1, 1), 0, 1));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.BAD_REQUEST),
+                    () -> assertEquals(exception.getCustomMessage(), "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.")
             );
         }
     }
