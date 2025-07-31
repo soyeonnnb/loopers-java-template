@@ -53,6 +53,9 @@ class OrderServiceIntegrationTest {
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
+    @Autowired
+    private OrderFacade orderFacade;
+
 
     @AfterEach
     void tearDown() {
@@ -211,7 +214,7 @@ class OrderServiceIntegrationTest {
 
     @DisplayName("사용자의 주문 리스트를 조회할 때,")
     @Nested
-    class GetUserInfoList {
+    class GetUserOrderList {
 
         @DisplayName("정상적으로 검색이 된다.")
         @Test
@@ -330,6 +333,152 @@ class OrderServiceIntegrationTest {
             assertAll(
                     () -> assertEquals(result.getErrorType(), GlobalErrorType.BAD_REQUEST),
                     () -> assertEquals(result.getCustomMessage(), "페이지는 최소 0 이상이여야 합니다.")
+            );
+        }
+    }
+
+    @DisplayName("사용자가 자신의 주문정보를 확인할 때,")
+    @Nested
+    class GetUserOrderInfo {
+        private final String LOGIN_ID = "la28s5d";
+        private UserEntity userEntity;
+        private OrderEntity orderEntity;
+
+        @BeforeEach
+        void setup() {
+            userEntity = userRepository.save(
+                    Instancio.of(UserEntity.class)
+                            .set(field(UserEntity::getId), null)
+                            .set(field(UserEntity::getLoginId), LOGIN_ID)
+                            .set(field(UserEntity::getPoint), 1000000000L)
+                            .create());
+
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            List<ProductEntity> productEntityList = productRepository.saveAll(Instancio.ofList(ProductEntity.class)
+                    .size(5)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .set(field(ProductEntity::getQuantity), 1000L)
+                    .set(field(ProductEntity::getPrice), 50L)
+                    .create());
+            for (int i = 0; i < 5; i++) {
+                ProductEntity productEntity = productEntityList.get(i);
+                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            }
+
+            orderEntity = orderRepository.save(new OrderEntity(userEntity, 100L));
+            List<OrderItemEntity> orderItemEntityList = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                orderItemEntityList.add(orderItemRepository.save(new OrderItemEntity(orderEntity, productEntityList.get(i), (long) (i + 1))));
+            }
+            ReflectionTestUtils.setField(orderEntity, "items", orderItemEntityList);
+        }
+
+        @DisplayName("사용자 ID가 없으면 401 에러가 발생한다.")
+        @Test
+        void throws401Exception_whenUserIdIsNull() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrder(null, orderEntity.getId()));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(GlobalErrorType.UNAUTHORIZED, exception.getErrorType()),
+                    () -> assertEquals("사용자 ID 정보가 없습니다.", exception.getCustomMessage())
+            );
+        }
+
+        @DisplayName("사용자 정보가 없으면 401 에러가 발생한다.")
+        @Test
+        void throws401Exception_whenInvalidUserId() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrder(LOGIN_ID + "1", orderEntity.getId()));
+
+            // assert
+            assertAll(
+                    () -> assertEquals(GlobalErrorType.UNAUTHORIZED, exception.getErrorType()),
+                    () -> assertEquals("사용자 정보가 없습니다.", exception.getCustomMessage())
+            );
+        }
+
+        @DisplayName("주문ID가 없으면 400 에러가 발생한다.")
+        @Test
+        void throws400Exception_whenOrderIdIsNull() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrder(LOGIN_ID, null));
+
+
+            // assert
+            assertAll(
+                    () -> assertEquals(GlobalErrorType.BAD_REQUEST, exception.getErrorType()),
+                    () -> assertEquals("주문 ID는 필수입니다.", exception.getCustomMessage())
+            );
+
+        }
+
+        @DisplayName("주문ID에 해당하는 주문이 없으면 404 에러가 발생한다.")
+        @Test
+        void throws404Exception_whenInvalidOrderId() {
+            // arrange
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrder(LOGIN_ID, orderEntity.getId() + 1L));
+
+
+            // assert
+            assertAll(
+                    () -> assertEquals(GlobalErrorType.NOT_FOUND, exception.getErrorType()),
+                    () -> assertEquals("주문 정보가 없습니다.", exception.getCustomMessage())
+            );
+
+        }
+
+        @DisplayName("사용자의 주문이 아니면 403 에러가 발생한다.")
+        @Test
+        void throws403Exception_whenOrderIsNotUsers() {
+            // arrange
+            String newLoginId = "la28s5d11";
+            userRepository.save(Instancio.of(UserEntity.class)
+                    .set(field(UserEntity::getId), null)
+                    .set(field(UserEntity::getLoginId), newLoginId)
+                    .create()
+            );
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrder(newLoginId, orderEntity.getId()));
+
+
+            // assert
+            assertAll(
+                    () -> assertEquals(GlobalErrorType.FORBIDDEN, exception.getErrorType()),
+                    () -> assertEquals("다른 사용자의 주문 정보입니다.", exception.getCustomMessage())
+            );
+
+        }
+
+        @DisplayName("사용자의 주문 번호면 정상적으로 조회된다.")
+        @Test
+        void success_whenValidParameter() {
+            // arrange
+
+            // act
+            OrderInfo orderInfo = orderFacade.getUserOrder(LOGIN_ID, orderEntity.getId());
+
+            // assert
+            assertAll(
+                    () -> assertNotNull(orderInfo),
+                    () -> assertEquals(orderEntity.getId(), orderInfo.id()),
+                    () -> assertEquals(userEntity.getId(), orderInfo.userInfo().id()),
+                    () -> assertEquals(userEntity.getEmail(), orderInfo.userInfo().email()),
+                    () -> assertEquals(orderEntity.getTotalPrice(), orderInfo.totalPrice()),
+                    () -> assertEquals(orderEntity.getItems().size(), orderInfo.items().size())
             );
         }
     }
