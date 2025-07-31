@@ -1,5 +1,6 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.order.OrderDomainService;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductService;
@@ -24,6 +25,7 @@ public class OrderFacade {
     private final UserService userService;
     private final ProductService productService;
     private final OrderService orderService;
+    private final OrderDomainService orderDomainService;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
@@ -31,7 +33,7 @@ public class OrderFacade {
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
         }
-        
+
         UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
 
         // 2. 상품 정보 확인 및 재고 확인
@@ -76,9 +78,7 @@ public class OrderFacade {
         OrderEntity orderEntity = orderService.getOrder(orderId).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "주문 정보가 없습니다."));
 
         // 3. 사용자 주문인지 확인
-        if (!orderEntity.getUser().getId().equals(user.getId())) {
-            throw new CoreException(GlobalErrorType.FORBIDDEN, "다른 사용자의 주문 정보입니다.");
-        }
+        orderDomainService.validateUserOwnsOrder(user, orderEntity);
 
         return OrderInfo.from(orderEntity);
     }

@@ -29,4 +29,10 @@ public class OrderDomainService {
         user.usePoint(totalPrice);
         itemList.forEach(item -> item.productEntity().decreaseQuantity(item.quantity()));
     }
+
+    public void validateUserOwnsOrder(UserEntity user, OrderEntity order) {
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new CoreException(GlobalErrorType.FORBIDDEN, "다른 사용자의 주문 정보입니다.");
+        }
+    }
 }

@@ -52,6 +52,26 @@ public class OrderDomainServiceTest {
         }
     }
 
+    @DisplayName("사용자 주문인지 확인할 때, 다른 유저의 주문이면 403 에러가 발생한다.")
+    @Test
+    void throw403Exception_whenUserNotOwnsOrder() {
+        // arrange
+        UserEntity userEntity = Instancio.create(UserEntity.class);
+        UserEntity otherUserEntity = Instancio.create(UserEntity.class);
+        OrderEntity orderEntity = Instancio.of(OrderEntity.class)
+                .set(field(OrderEntity::getUser), otherUserEntity)
+                .create();
+
+        // act
+        CoreException exception = assertThrows(CoreException.class, () -> orderDomainService.validateUserOwnsOrder(userEntity, orderEntity));
+
+        // assert
+        assertAll(
+                () -> assertEquals(exception.getErrorType(), GlobalErrorType.FORBIDDEN),
+                () -> assertEquals(exception.getCustomMessage(), "다른 사용자의 주문 정보입니다.")
+        );
+    }
+
     @DisplayName("상품의 유효성을 확인할 때")
     @Nested
     class ValidateOrderItems {
