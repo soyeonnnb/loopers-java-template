@@ -50,4 +50,8 @@ public class OrderItemEntity extends BaseEntity {
         this.price = product.getPrice();
         this.quantity = quantity;
     }
+
+    public void updateOrder(OrderEntity order) {
+        this.order = order;
+    }
 }

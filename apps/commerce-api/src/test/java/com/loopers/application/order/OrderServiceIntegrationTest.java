@@ -74,10 +74,10 @@ class OrderServiceIntegrationTest {
 
         @BeforeEach
         void setup() {
-            userEntity = Instancio.of(UserEntity.class)
+            userEntity = userRepository.save(Instancio.of(UserEntity.class)
                     .set(field(UserEntity::getId), null)
                     .set(field(UserEntity::getPoint), 10000000L)
-                    .create();
+                    .create());
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             productEntityList = productRepository.saveAll(
                     Instancio.ofList(ProductEntity.class)
@@ -96,6 +96,24 @@ class OrderServiceIntegrationTest {
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
                 itemList.add(new OrderCommand.OrderProduct(productEntity, (long) (i + 1)));
             }
+        }
+
+
+        @DisplayName("주문에 성공한다.")
+        @Test
+        void success_order() {
+            // arrange
+
+            // act
+            OrderEntity orderEntity = orderService.order(userEntity, itemList, TOTAL_PRICE);
+
+            // assert
+            assertAll(
+                    () -> assertNotNull(orderEntity),
+                    () -> assertEquals(userEntity.getId(), orderEntity.getUser().getId()),
+                    () -> assertEquals(itemList.size(), orderEntity.getItems().size()),
+                    () -> assertEquals(TOTAL_PRICE, orderEntity.getTotalPrice())
+            );
         }
 
         @DisplayName("User 객체가 없으면 401 에러가 발생한다.")

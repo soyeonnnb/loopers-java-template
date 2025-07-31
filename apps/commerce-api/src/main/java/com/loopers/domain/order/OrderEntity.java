@@ -26,7 +26,7 @@ public class OrderEntity extends BaseEntity {
     private Long totalPrice;
 
     @Schema(name = "주문 상품")
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
 
     protected OrderEntity() {
@@ -54,5 +54,6 @@ public class OrderEntity extends BaseEntity {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "주문 상품이 null이 될 수 없습니다.");
         }
         this.items.add(orderItem);
+        orderItem.updateOrder(this);
     }
 }
