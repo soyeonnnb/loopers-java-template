@@ -1,13 +1,16 @@
 package com.loopers.domain.product;
 
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.GlobalErrorType;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.instancio.Select.field;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ProductModelTest {
     @DisplayName("Product 객체를 생성할 때, ")
@@ -87,6 +90,73 @@ public class ProductModelTest {
             // act & assert
             assertThrows(CoreException.class, () ->
                     new ProductEntity(brandEntity, "상품", 1L, -1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0))
+            );
+        }
+    }
+
+    @DisplayName("재고가 감소할 때")
+    @Nested
+    class DecreaseQuantity {
+        @DisplayName("재고가 충분하면 재고가 감소한다.")
+        @Test
+        void success_whenQuantityIsEnough() {
+            // arrange
+            BrandEntity brandEntity = Instancio.create(BrandEntity.class);
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getQuantity), 10L)
+                    .create();
+
+            // act
+            productEntity.decreaseQuantity(5L);
+
+            // assert
+            assertAll(
+                    () -> assertEquals(productEntity.getQuantity(), 5L),
+                    () -> assertEquals(productEntity.getStatus(), ProductStatus.SALE)
+            );
+        }
+
+        @DisplayName("재고가 부족하면 409 에러가 발생한다.")
+        @Test
+        void throws409Exception_whenQuantityIsNotEnough() {
+            // arrange
+            BrandEntity brandEntity = Instancio.create(BrandEntity.class);
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getQuantity), 10L)
+                    .create();
+
+            // act
+            CoreException exception = assertThrows(CoreException.class, () -> productEntity.decreaseQuantity(100L));
+
+
+            // assert
+            assertAll(
+                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.CONFLICT),
+                    () -> assertEquals(exception.getCustomMessage(), "상품 재고가 부족합니다."),
+                    () -> assertEquals(productEntity.getQuantity(), 10L),
+                    () -> assertEquals(productEntity.getStatus(), ProductStatus.SALE)
+            );
+        }
+
+        @DisplayName("재고가 0이 되면 SOLD OUT 처리가 된다.")
+        @Test
+        void statusBecomesSoldOut_whenQuantityIs0() {
+            // arrange
+            BrandEntity brandEntity = Instancio.create(BrandEntity.class);
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getQuantity), 10L)
+                    .create();
+
+            // act
+            productEntity.decreaseQuantity(10L);
+
+            // assert
+            assertAll(
+                    () -> assertEquals(productEntity.getQuantity(), 0L),
+                    () -> assertEquals(productEntity.getStatus(), ProductStatus.SOLD_OUT)
             );
         }
     }
