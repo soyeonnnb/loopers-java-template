@@ -2,6 +2,7 @@ package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.GlobalErrorType;
 import com.loopers.support.error.PointErrorType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -121,5 +122,12 @@ public class UserEntity extends BaseEntity {
     @Override
     public int hashCode() {
         return Objects.hash(loginId);
+    }
+
+    public void usePoint(Long usePoint) {
+        if (this.point - usePoint < 0) {
+            throw new CoreException(GlobalErrorType.CONFLICT, "사용자 포인트는 0 미만이 될 수 없습니다.");
+        }
+        this.point -= usePoint;
     }
 }

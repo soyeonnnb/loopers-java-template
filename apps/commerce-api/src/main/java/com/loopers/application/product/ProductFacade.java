@@ -64,7 +64,7 @@ public class ProductFacade {
 
         Page<ProductEntity> productEntityList = productService.getProductInfoList(optionalBrandEntity, order, size, page);
         List<ProductInfo> productInfoList = new ArrayList<>();
-        if (optionalBrandEntity.isPresent()) {
+        if (optionalUserEntity.isPresent()) {
             for (ProductEntity productEntity : productEntityList) {
                 Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get(), productEntity);
                 productInfoList.add(ProductInfo.from(productEntity, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));

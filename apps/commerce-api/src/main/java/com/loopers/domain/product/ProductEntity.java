@@ -89,4 +89,14 @@ public class ProductEntity extends BaseEntity {
     public int hashCode() {
         return Objects.hash(this.getId());
     }
+
+    public void decreaseQuantity(Long quantity) {
+        if (this.quantity < quantity) {
+            throw new CoreException(GlobalErrorType.CONFLICT, "상품 재고가 부족합니다.");
+        }
+        this.quantity -= quantity;
+        if (this.quantity == 0) {
+            this.status = ProductStatus.SOLD_OUT;
+        }
+    }
 }
