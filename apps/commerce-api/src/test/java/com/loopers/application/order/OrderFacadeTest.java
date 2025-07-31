@@ -5,7 +5,9 @@ import com.loopers.domain.user.UserRepository;
 import com.loopers.interfaces.api.order.OrderV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
+import com.loopers.utils.DatabaseCleanUp;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,14 @@ class OrderFacadeTest {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
+    @AfterEach
+    void tearDown() {
+        databaseCleanUp.truncateAllTables();
+    }
 
     @DisplayName("주문할 때")
     @Nested

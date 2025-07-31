@@ -31,6 +31,7 @@ public class OrderFacade {
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
         }
+        
         UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
 
         // 2. 상품 정보 확인 및 재고 확인
