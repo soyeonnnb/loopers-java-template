@@ -1,7 +1,6 @@
-package com.loopers.domain.order;
+package com.loopers.application.order;
 
-import com.loopers.application.order.OrderCommand;
-import com.loopers.application.order.OrderService;
+import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
@@ -84,12 +83,6 @@ class OrderServiceIntegrationTest {
                 itemList.add(new OrderCommand.OrderProduct(productEntity, (long) (i + 1)));
             }
         }
-
-
-//        @AfterEach
-//        void tearDown() {
-//            databaseCleanUp.truncateAllTables();
-//        }
 
         @DisplayName("User 객체가 없으면 401 에러가 발생한다.")
         @Test
@@ -202,8 +195,6 @@ class OrderServiceIntegrationTest {
             );
         }
 
-
-        // 상품 ID에 해당하는 상품이 하나라도 없으면 404 에러가 발생한다. -> facade
 
     }
 }
