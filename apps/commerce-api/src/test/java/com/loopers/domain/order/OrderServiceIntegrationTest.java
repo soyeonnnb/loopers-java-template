@@ -1,9 +1,8 @@
-package com.loopers.application.order;
+package com.loopers.domain.order;
 
-import com.loopers.domain.order.OrderEntity;
-import com.loopers.domain.order.OrderItemEntity;
-import com.loopers.domain.order.OrderItemRepository;
-import com.loopers.domain.order.OrderRepository;
+import com.loopers.application.order.OrderCommand;
+import com.loopers.application.order.OrderFacade;
+import com.loopers.application.order.OrderInfo;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;

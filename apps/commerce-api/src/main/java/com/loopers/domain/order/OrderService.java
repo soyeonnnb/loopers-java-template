@@ -1,9 +1,6 @@
-package com.loopers.application.order;
+package com.loopers.domain.order;
 
-import com.loopers.domain.order.OrderDomainService;
-import com.loopers.domain.order.OrderEntity;
-import com.loopers.domain.order.OrderItemEntity;
-import com.loopers.domain.order.OrderRepository;
+import com.loopers.application.order.OrderCommand;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
