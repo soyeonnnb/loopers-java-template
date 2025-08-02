@@ -2,38 +2,49 @@ package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.GlobalErrorType;
 import com.loopers.support.error.PointErrorType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user")
 public class UserEntity extends BaseEntity {
 
-    @Column(name = "로그인 ID", nullable = false, length = 10, unique = true)
+    @Schema(name = "로그인 ID")
+    @Column(nullable = false, length = 10, unique = true)
     private String loginId;
 
-    @Column(name = "비밀번호", nullable = false)
+    @Schema(name = "비밀번호")
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "이메일", nullable = false)
+    @Schema(name = "이메일")
+    @Column(nullable = false)
     private String email;
 
-    @Column(name = "이름", nullable = false)
+    @Schema(name = "이름")
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "닉네임", nullable = false)
+    @Schema(name = "닉네임")
+    @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "생년월일", nullable = false)
+    @Schema(name = "생년월일")
+    @Column(nullable = false)
     private LocalDate birthDate;
 
-    @Column(name = "성별", nullable = false)
+    @Schema(name = "성별")
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "포인트", nullable = false)
+    @Schema(name = "포인트")
+    @Column(nullable = false)
     private Long point;
 
     protected UserEntity() {
@@ -98,5 +109,25 @@ public class UserEntity extends BaseEntity {
             throw new CoreException(PointErrorType.POINT_MUST_BE_GREATER_THAN_0);
         }
         this.point += point;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserEntity that = (UserEntity) o;
+        return Objects.equals(loginId, that.loginId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(loginId);
+    }
+
+    public void usePoint(Long usePoint) {
+        if (this.point - usePoint < 0) {
+            throw new CoreException(GlobalErrorType.CONFLICT, "사용자 포인트는 0 미만이 될 수 없습니다.");
+        }
+        this.point -= usePoint;
     }
 }

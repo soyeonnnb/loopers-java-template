@@ -57,6 +57,7 @@ subprojects {
         annotationProcessor("org.projectlombok:lombok")
         // Test
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+        testImplementation("org.instancio:instancio-junit:5.4.0")
         // testcontainers:mysql 이 jdbc 사용함
         testRuntimeOnly("com.mysql:mysql-connector-j")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -95,11 +96,11 @@ subprojects {
         }
         afterEvaluate {
             classDirectories.setFrom(
-                files(
-                    classDirectories.files.map {
-                        fileTree(it)
-                    },
-                ),
+                    files(
+                            classDirectories.files.map {
+                                fileTree(it)
+                            },
+                    ),
             )
         }
     }

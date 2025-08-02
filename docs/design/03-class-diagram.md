@@ -1,12 +1,27 @@
 ```mermaid
 classDiagram
-
+	class Email {
+		-string email
+		+validate()
+	}
+	class BirthDate {
+		-localDateTime birthDate
+		+validate()
+		+toDate(dateString)
+	}
+	class Point {
+		-bigDecimal Point
+		+validate()
+		+charge(point)
+		+use(point)
+		+affordable(point)
+	}
 	class User {
 		-string id
 		-string gender
-		-date birth_date
-		-string email
-		-long point
+		-BirthDate birth_date
+		-Email email
+		-Point point
 		+chargePoint(point)
 		+usePoint(point)
 	}
@@ -76,8 +91,11 @@ classDiagram
 	Cart --> User
 
 	%% Order
+	Email "1" --> "1" User
+	BirthDate "1" --> "1" User
+	Point "1" --> "1" User
 	Order "1" *-- "N" OrderItem
-	OrderItem --> Product
+	OrderItem --> Producßßt
 	Order "N" --> "1" User
 
 	%% Like

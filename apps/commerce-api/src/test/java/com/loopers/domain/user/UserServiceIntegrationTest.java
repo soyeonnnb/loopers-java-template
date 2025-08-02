@@ -16,6 +16,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,26 +110,26 @@ class UserServiceIntegrationTest {
             userRepository.save(userEntity);
 
             // act
-            UserEntity result = userService.getUserInfo(loginId);
+            Optional<UserEntity> result = userService.getUserInfo(loginId);
 
             // assert
             assertAll(
                     () -> assertThat(result).isNotNull(),
                     () -> {
-                        assert result != null;
-                        assertEquals(userEntity.getLoginId(), result.getLoginId());
+                        assert result.isPresent();
+                        assertEquals(userEntity.getLoginId(), result.get().getLoginId());
                     },
                     () -> {
-                        assert result != null;
-                        assertEquals(userEntity.getEmail(), result.getEmail());
+                        assert result.isPresent();
+                        assertEquals(userEntity.getEmail(), result.get().getEmail());
                     },
                     () -> {
-                        assert result != null;
-                        assertEquals(userEntity.getGender(), result.getGender());
+                        assert result.isPresent();
+                        assertEquals(userEntity.getGender(), result.get().getGender());
                     },
                     () -> {
-                        assert result != null;
-                        assertEquals(userEntity.getBirthDate(), result.getBirthDate());
+                        assert result.isPresent();
+                        assertEquals(userEntity.getBirthDate(), result.get().getBirthDate());
                     }
             );
         }
@@ -138,11 +140,11 @@ class UserServiceIntegrationTest {
             String loginId = "la28s5d";
 
             // act
-            UserEntity result = userService.getUserInfo(loginId);
+            Optional<UserEntity> result = userService.getUserInfo(loginId);
 
             // assert
             assertAll(
-                    () -> assertThat(result).isNull()
+                    () -> assertTrue(result.isEmpty())
             );
         }
     }
