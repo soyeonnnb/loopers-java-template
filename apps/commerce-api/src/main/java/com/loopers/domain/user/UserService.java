@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -27,8 +29,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserEntity getUserInfo(String userId) {
-        return userRepository.findByLoginId(userId).orElse(null);
+    public Optional<UserEntity> getUserInfo(String userId) {
+        return userRepository.findByLoginId(userId);
     }
 
     @Transactional
@@ -37,4 +39,5 @@ public class UserService {
         userEntity.chargePoint(point);
         return userEntity;
     }
+
 }
