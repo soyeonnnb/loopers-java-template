@@ -45,14 +45,16 @@ public class LikeService {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
         }
         Optional<LikeEntity> optionalLikeEntity = likeRepository.findByUserAndProduct(userEntity, productEntity);
-        LikeEntity likeEntity = optionalLikeEntity.orElse(new LikeEntity(userEntity, productEntity, false));
-
-        if (likeEntity.getIsLike()) {
-            productEntity.getProductCount().decreaseLikeCount();
+        if (optionalLikeEntity.isEmpty()) { // 아직 좋아요한 적이 없음
+            return null;
+        } else {
+            LikeEntity likeEntity = optionalLikeEntity.get();
+            if (likeEntity.getIsLike()) {
+                productEntity.getProductCount().decreaseLikeCount();
+            }
+            likeEntity.dislike();
+            return likeRepository.save(likeEntity);
         }
-
-        likeEntity.dislike();
-        return likeRepository.save(likeEntity);
     }
 
     @Transactional(readOnly = true)

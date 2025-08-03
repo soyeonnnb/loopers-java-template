@@ -192,7 +192,7 @@ class LikeServiceIntegrationTest {
             );
         }
 
-        @DisplayName("이미 좋아요를 한 적이 없다면, 좋아요되지 않은 객체가 반환된다.")
+        @DisplayName("아직 좋아요를 한 적이 없다면, null 객체가 반환된다.")
         @Test
         void returnLikeInfo_whenHaventLiked() {
             // arrange
@@ -207,11 +207,7 @@ class LikeServiceIntegrationTest {
 
             // assert
             assertAll(
-                    () -> assertThat(result).isNotNull(),
-                    () -> {
-                        assert result != null;
-                        assertFalse(result.getIsLike());
-                    }
+                    () -> assertThat(result).isNull()
             );
         }
     }
