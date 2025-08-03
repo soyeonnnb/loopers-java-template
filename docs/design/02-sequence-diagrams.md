@@ -12,7 +12,10 @@ sequenceDiagram
 	U ->> BC: 브랜드 정보 조회 요청 (brandId)
 		activate U
 		activate BC
-				BC ->> BS:브랜드 정보 조회 (brandId)
+			alt brandId가 없음
+				BC -->> U: brandId가 없음
+			end
+			BC ->> BS:브랜드 정보 조회 (brandId)
 			activate BS
 				BS ->> BR: 브랜드 정보 조회 (brandId)
 				activate BR
@@ -38,9 +41,11 @@ sequenceDiagram
 	participant US as UserService
 	participant BS as BrandService
 	participant PS as ProductService
+	participant LS as LikeService
 	participant UR as UserRepository
 	participant BR as BrandRepository
 	participant PR as ProductRepository
+	participant LR as LikeRepository
 
 	U ->> PC: 상품 목록 조회 요청 (brandId, order, size, page)
 	activate U
@@ -80,6 +85,18 @@ sequenceDiagram
 				activate PR
 					PR -->> PS: 조건에 맞는 상품 목록 반환
 				deactivate PR
+				alt 로그인
+					loop productList
+						PS ->> LS: 상품 좋아요여부 조회
+						activate LS
+						LS ->> LR: 상품 좋아요 여부 검색
+							activate LR
+								LR -->> LS: 상품 좋아요 여부 반환
+							deactivate LR
+						LS -->> PS: 상품 좋아요여부 반환
+						deactivate LS
+					end
+				end
 				PS -->> PC: 상품 목록 반환
 			deactivate PS
 		PC -->> U: 상품 목록 반환
@@ -96,8 +113,10 @@ sequenceDiagram
 	participant PC as ProductController
 	participant PS as ProductService
 	participant US as UserService
+	participant LS as LikeService
 	participant UR as UserRepository
 	participant PR as ProductRepository
+	participant LR as LikeRepository
 
 	U ->> PC: 상품 정보 조회 요청 (productId)
 	activate U
@@ -116,9 +135,9 @@ sequenceDiagram
 					end
 				deactivate US
 			end
-			PC ->> PS: 상품 정보 조회 (user, productId)
+			PC ->> PS: 상품 정보 조회 (productId)
 			activate PS
-				PS ->> PR: 상품 정보 조회 (user, productId)
+				PS ->> PR: 상품 정보 조회 (productId)
 				activate PR
 					PR -->> PS: 상품 정보 반환
 				deactivate PR
@@ -128,6 +147,16 @@ sequenceDiagram
 					PS-->> PC: 상품 정보 반환
 				end
 			deactivate PS
+			alt 로그인
+				PC ->> LS: 좋아요 여부 검색 (user, product)
+				activate LS
+					LS ->> LR: 좋아요 여부 검색 (user, product)
+					activate LR
+						LR -->> LS: 좋아요 여부 반환 (like)
+					deactivate LR
+					LS -->> PC: 상품 좋아요여부 반환
+				deactivate LS
+			end
 			PC -->> U: 상품 정보 반환
 		deactivate PC
 	deactivate U
