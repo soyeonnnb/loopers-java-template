@@ -28,12 +28,36 @@ classDiagram
 		+long getLikes()
 	}
 
+	class Coupon {
+		-long id
+		- string name
+		%%(FLAT정액, RATE정률)
+		-CouponSaleType type
+		%% 최소주문금액
+		-long minOrderPrice
+		%% 최대사용금액
+		-long maxUsePrice
+		%% 정률 시 할인 퍼센트
+		-double rate
+		-date expiryDate
+	}
+
+	class UserCoupon {
+		-long id
+		-User user
+		-date expiredAt
+		-boolean isUsed
+		-Order order
+		-Coupon coupon
+	}
+
 	class Order {
 		-long id
 		-User user
 		-timestamp ordered_at
 		-long total_price
 		-List<OrderItems> items
+		-Coupon coupon
 		+order(user, List<Product>, totalPrice)
 		+getOrderInfo(orderId)
 	}
@@ -79,6 +103,10 @@ classDiagram
 	Order "1" *-- "N" OrderItem
 	OrderItem --> Product
 	Order "N" --> "1" User
+	Coupon "1" --> "N" UserCoupon
+	UserCoupon "N" --> "1" User
+	Order "1" <-- "1" UserCoupon
+
 
 	%% Like
 	Like --> Product
