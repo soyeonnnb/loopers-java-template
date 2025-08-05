@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class OrderV1Dto {
-    public record OrderRequest(@NotNull List<ProductOrderRequest> items, @NotNull Long totalPrice) {
+    public record OrderRequest(@NotNull List<ProductOrderRequest> items, @NotNull Long totalPrice, Long couponId) {
 
     }
 

@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 
 @Entity
 @Getter
-@Table(name = "coupons")
+@Table(name = "coupon")
 public class CouponEntity extends BaseEntity {
 
     @Schema(name = "쿠폰명")

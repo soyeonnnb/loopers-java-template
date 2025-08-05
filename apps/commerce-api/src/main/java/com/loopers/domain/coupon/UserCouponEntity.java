@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 
 @Entity
 @Getter
-@Table(name = "user_coupons")
+@Table(name = "user_coupon")
 public class UserCouponEntity extends BaseEntity {
 
     @Schema(name = "소유자")
@@ -32,11 +32,14 @@ public class UserCouponEntity extends BaseEntity {
     @Column(nullable = false)
     private Boolean isUsed;
 
+    @Schema(name = "사용일자")
+    private ZonedDateTime usedAt;
+
     protected UserCouponEntity() {
 
     }
 
-    public UserCouponEntity(UserEntity user, CouponEntity coupon, ZonedDateTime expiredAt, Boolean isUsed) {
+    public UserCouponEntity(UserEntity user, CouponEntity coupon, ZonedDateTime expiredAt, Boolean isUsed, ZonedDateTime usedAt) {
         if (user == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "소유자는 null일 수 없습니다.");
         }
@@ -53,11 +56,20 @@ public class UserCouponEntity extends BaseEntity {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용여부는 null일 수 없습니다.");
         }
 
+        if (isUsed && usedAt == null) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용여부는 null일 수 없습니다.");
+        }
+
         this.user = user;
         this.coupon = coupon;
         this.expiredAt = expiredAt;
         this.isUsed = isUsed;
+        this.usedAt = isUsed ? usedAt : null;
 
+    }
 
+    public void use() {
+        this.isUsed = true;
+        this.usedAt = ZonedDateTime.now();
     }
 }

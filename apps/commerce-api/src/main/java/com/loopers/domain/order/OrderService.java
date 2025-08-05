@@ -1,6 +1,8 @@
 package com.loopers.domain.order;
 
 import com.loopers.application.order.OrderCommand;
+import com.loopers.domain.coupon.UserCouponDomainService;
+import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -22,9 +24,10 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService;
+    private final UserCouponDomainService userCouponDomainService;
 
     @Transactional
-    public OrderEntity order(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice) {
+    public OrderEntity order(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon) {
         // 0. 파라미터 값 체크
         if (user == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -34,25 +37,31 @@ public class OrderService {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "주문하려는 상품은 1개 이상이여야 합니다.");
         }
 
-        if (totalPrice < 0L) {
+        if (totalPrice == null || totalPrice < 0L) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "주문하려는 금액은 0 이상이여야 합니다.");
         }
 
         // 1. 상품 확인
         orderDomainService.validateOrderItems(itemList);
-        if (!totalPrice.equals(orderDomainService.calculateTotalPrice(itemList))) {
+        if (userCoupon != null) {
+            userCouponDomainService.validateUseCoupon(user, userCoupon, totalPrice);
+        }
+
+        Long calculatePrice = userCouponDomainService.calculateUseCouponPrice(orderDomainService.calculateTotalPrice(itemList), userCoupon);
+        if (!totalPrice.equals(calculatePrice)) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 총 합계와 주문 금액이 일치하지 않습니다.");
         }
 
         // 2. 사용자 포인트 확인 및 사용 & 재고 차감
-        orderDomainService.processOrder(user, itemList, totalPrice);
+        orderDomainService.processOrder(user, itemList, calculatePrice);
+
+        // 3. 쿠폰 사용
+        if (userCoupon != null) {
+            userCoupon.use();
+        }
 
         // 3. 주문 생성
-        OrderEntity orderEntity = new OrderEntity(user, totalPrice);
-        for (OrderCommand.OrderProduct orderProduct : itemList) {
-            OrderItemEntity orderItemEntity = new OrderItemEntity(orderEntity, orderProduct.productEntity(), orderProduct.quantity());
-            orderEntity.addOrderItem(orderItemEntity);
-        }
+        OrderEntity orderEntity = orderDomainService.createOrder(user, itemList, calculatePrice, userCoupon);
         return orderRepository.save(orderEntity);
     }
 

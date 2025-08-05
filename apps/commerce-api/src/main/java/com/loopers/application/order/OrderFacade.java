@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.coupon.UserCouponEntity;
+import com.loopers.domain.coupon.UserCouponService;
 import com.loopers.domain.order.OrderDomainService;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderService;
@@ -27,6 +29,7 @@ public class OrderFacade {
     private final ProductService productService;
     private final OrderService orderService;
     private final OrderDomainService orderDomainService;
+    private final UserCouponService userCouponService;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
@@ -44,7 +47,13 @@ public class OrderFacade {
             itemList.add(new OrderCommand.OrderProduct(productEntity, productOrderRequest.quantity()));
         }
 
-        return OrderInfo.from(orderService.order(user, itemList, request.totalPrice()));
+        // 3. 쿠폰 확인
+        UserCouponEntity userCoupon = userCouponService.getCouponInfo(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
+
+        // 4. 주문
+        OrderEntity orderEntity = orderService.order(user, itemList, request.totalPrice(), userCoupon);
+
+        return OrderInfo.from(orderEntity);
     }
 
     public List<OrderInfo> getUserInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
