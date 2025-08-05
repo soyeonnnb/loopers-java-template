@@ -27,7 +27,7 @@ class OrderFacadeTest {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
@@ -81,7 +81,7 @@ class OrderFacadeTest {
                             .set(field(UserEntity::getId), null)
                             .set(field(UserEntity::getLoginId), loginId)
                             .create());
-            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(List.of(new OrderV1Dto.ProductOrderRequest(9999L, 100L)), 100L);
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(List.of(new OrderV1Dto.ProductOrderRequest(9999L, 100L)), 100L, null);
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(loginId, request));
