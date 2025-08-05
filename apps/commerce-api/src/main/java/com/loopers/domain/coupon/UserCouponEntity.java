@@ -28,18 +28,17 @@ public class UserCouponEntity extends BaseEntity {
     @Column(nullable = false)
     private ZonedDateTime expiredAt;
 
-    @Schema(name = "사용여부")
-    @Column(nullable = false)
-    private Boolean isUsed;
-
     @Schema(name = "사용일자")
     private ZonedDateTime usedAt;
+
+    @Schema(name = "쿠폰 적용 전 가격")
+    private Long beforePrice;
 
     protected UserCouponEntity() {
 
     }
 
-    public UserCouponEntity(UserEntity user, CouponEntity coupon, ZonedDateTime expiredAt, Boolean isUsed, ZonedDateTime usedAt) {
+    public UserCouponEntity(UserEntity user, CouponEntity coupon, ZonedDateTime expiredAt, ZonedDateTime usedAt, Long beforePrice) {
         if (user == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "소유자는 null일 수 없습니다.");
         }
@@ -51,25 +50,20 @@ public class UserCouponEntity extends BaseEntity {
         if (expiredAt == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "만료일은 null일 수 없습니다.");
         }
-
-        if (isUsed == null) {
-            throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용여부는 null일 수 없습니다.");
-        }
-
-        if (isUsed && usedAt == null) {
-            throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용여부는 null일 수 없습니다.");
+        if ((usedAt != null && beforePrice == null) || (usedAt == null && beforePrice != null)) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용시간과 사용전 금액의 존재 여부는 일치해야 합니다.");
         }
 
         this.user = user;
         this.coupon = coupon;
         this.expiredAt = expiredAt;
-        this.isUsed = isUsed;
-        this.usedAt = isUsed ? usedAt : null;
+        this.usedAt = usedAt;
+        this.beforePrice = beforePrice;
 
     }
 
-    public void use() {
-        this.isUsed = true;
+    public void use(Long beforePrice) {
         this.usedAt = ZonedDateTime.now();
+        this.beforePrice = beforePrice;
     }
 }

@@ -37,7 +37,7 @@ public class UserCouponDomainServiceTest {
                     .set(field(CouponEntity::getMinOrderPrice), 3000L)
                     .create();
             ZonedDateTime expired = ZonedDateTime.now().plusDays(12L);
-            userCoupon = new UserCouponEntity(user, coupon, expired, false, null);
+            userCoupon = new UserCouponEntity(user, coupon, expired, null, null);
         }
 
         @DisplayName("사용자가 null이면 401에러가 발생한다.")
@@ -105,8 +105,8 @@ public class UserCouponDomainServiceTest {
         @Test
         void throws409Exception_whenAlreadyUsedCoupon() {
             // arrange
-            ReflectionTestUtils.setField(userCoupon, "isUsed", true);
             ReflectionTestUtils.setField(userCoupon, "usedAt", ZonedDateTime.now().minusDays(1));
+            ReflectionTestUtils.setField(userCoupon, "beforePrice", 3000L);
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> userCouponDomainService.validateUseCoupon(user, userCoupon, TOTAL_PRICE));
@@ -169,7 +169,7 @@ public class UserCouponDomainServiceTest {
                     .set(field(CouponEntity::getMinOrderPrice), 3000L)
                     .create();
             ZonedDateTime expired = ZonedDateTime.now().plusDays(12L);
-            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, expired, false, null);
+            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, expired, null, null);
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> userCouponDomainService.calculateUseCouponPrice(100L, userCoupon));
@@ -186,7 +186,7 @@ public class UserCouponDomainServiceTest {
         void success_whenRateCoupon() {
             // arrange
             CouponEntity coupon = new CouponEntity("쿠폰명", CouponType.RATE, 1000L, 1000L, 10.0, ZonedDateTime.now());
-            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, ZonedDateTime.now().plusDays(2L), false, null);
+            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, ZonedDateTime.now().plusDays(2L), null, null);
 
             // act
             Long result = userCouponDomainService.calculateUseCouponPrice(10000L, userCoupon);
@@ -203,7 +203,7 @@ public class UserCouponDomainServiceTest {
         void success_flat_coupon() {
             // arrange
             CouponEntity coupon = new CouponEntity("쿠폰명", CouponType.FLAT, 1000L, 200L, null, ZonedDateTime.now());
-            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, ZonedDateTime.now().plusDays(2L), false, null);
+            UserCouponEntity userCoupon = new UserCouponEntity(user, coupon, ZonedDateTime.now().plusDays(2L), null, null);
 
             // act
             Long result = userCouponDomainService.calculateUseCouponPrice(2000L, userCoupon);

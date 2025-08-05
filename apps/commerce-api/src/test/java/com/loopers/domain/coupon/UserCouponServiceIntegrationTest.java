@@ -55,7 +55,7 @@ class UserCouponServiceIntegrationTest {
 
             ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
             CouponEntity coupon = couponRepository.save(new CouponEntity("정액 쿠폰", "FLAT", 3000L, 200L, null, expiredAt));
-            UserCouponEntity userCoupon = userCouponRepository.save(new UserCouponEntity(user, coupon, expiredAt, false, null));
+            UserCouponEntity userCoupon = userCouponRepository.save(new UserCouponEntity(user, coupon, expiredAt, null, null));
 
             // act
             Optional<UserCouponEntity> result = userCouponService.getCouponInfo(userCoupon.getId());
@@ -104,7 +104,7 @@ class UserCouponServiceIntegrationTest {
                     },
                     () -> {
                         assert Objects.requireNonNull(result).isPresent();
-                        assertEquals(userCoupon.getIsUsed(), result.get().getIsUsed());
+                        assertEquals(userCoupon.getBeforePrice(), result.get().getBeforePrice());
                     },
                     () -> {
                         assert Objects.requireNonNull(result).isPresent();

@@ -29,7 +29,7 @@ public class UserCouponDomainService {
             throw new CoreException(GlobalErrorType.FORBIDDEN, "로그인한 사용자의 쿠폰이 아닙니다.");
         }
         // 2. 사용여부 확인
-        if (userCoupon.getIsUsed()) {
+        if (userCoupon.getUsedAt() != null) {
             throw new CoreException(GlobalErrorType.CONFLICT, "이미 사용한 쿠폰입니다.");
         }
         // 3. 사용기간 확인

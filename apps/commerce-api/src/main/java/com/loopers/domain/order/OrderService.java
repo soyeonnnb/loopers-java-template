@@ -57,7 +57,7 @@ public class OrderService {
 
         // 3. 쿠폰 사용
         if (userCoupon != null) {
-            userCoupon.use();
+            userCoupon.use(calculatePrice);
         }
 
         // 3. 주문 생성

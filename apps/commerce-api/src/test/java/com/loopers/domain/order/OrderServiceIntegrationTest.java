@@ -257,9 +257,9 @@ class OrderServiceIntegrationTest {
                 ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
                 flatCoupon = couponRepository.save(new CouponEntity("정액 쿠폰", "FLAT", 3000L, 200L, null, expiredAt));
                 rateCoupon = couponRepository.save(new CouponEntity("정률 쿠폰", "RATE", 3000L, 2500L, 10.0, expiredAt));
-                userFlatCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, flatCoupon, expiredAt, false, null));
+                userFlatCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, flatCoupon, expiredAt, null, null));
                 ReflectionTestUtils.setField(userFlatCoupon, "coupon", flatCoupon);
-                userRateCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, rateCoupon, expiredAt, false, null));
+                userRateCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, rateCoupon, expiredAt, null, null));
                 ReflectionTestUtils.setField(userRateCoupon, "coupon", rateCoupon);
             }
 
@@ -278,7 +278,6 @@ class OrderServiceIntegrationTest {
                         () -> assertEquals(userEntity.getId(), orderEntity.getUser().getId()),
                         () -> assertEquals(itemList.size(), orderEntity.getItems().size()),
                         () -> assertEquals(salePrice, orderEntity.getTotalPrice()),
-                        () -> assertTrue(userFlatCoupon.getIsUsed()),
                         () -> assertNotNull(userFlatCoupon.getUsedAt()),
                         () -> assertEquals(orderEntity.getUserCoupon().getId(), userFlatCoupon.getId())
                 );
@@ -302,7 +301,6 @@ class OrderServiceIntegrationTest {
                         () -> assertEquals(userEntity.getId(), orderEntity.getUser().getId()),
                         () -> assertEquals(itemList.size(), orderEntity.getItems().size()),
                         () -> assertEquals(salePrice, orderEntity.getTotalPrice()),
-                        () -> assertTrue(userRateCoupon.getIsUsed()),
                         () -> assertNotNull(userRateCoupon.getUsedAt()),
                         () -> assertEquals(orderEntity.getUserCoupon().getId(), userRateCoupon.getId())
                 );
