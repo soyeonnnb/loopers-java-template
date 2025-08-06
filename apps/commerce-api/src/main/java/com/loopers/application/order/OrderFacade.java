@@ -48,7 +48,10 @@ public class OrderFacade {
         }
 
         // 3. 쿠폰 확인
-        UserCouponEntity userCoupon = userCouponService.getCouponInfo(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
+        UserCouponEntity userCoupon = null;
+        if (request.couponId() != null) {
+            userCoupon = userCouponService.getCouponInfo(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
+        }
 
         // 4. 주문
         OrderEntity orderEntity = orderService.order(user, itemList, request.totalPrice(), userCoupon);
