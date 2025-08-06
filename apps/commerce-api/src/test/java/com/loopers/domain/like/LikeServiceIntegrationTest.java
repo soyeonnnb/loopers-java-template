@@ -129,6 +129,7 @@ class LikeServiceIntegrationTest {
                     }
             );
         }
+
     }
 
     @DisplayName("좋아요 취소할 때,")

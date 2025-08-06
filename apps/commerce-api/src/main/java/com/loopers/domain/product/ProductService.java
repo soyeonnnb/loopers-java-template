@@ -23,6 +23,11 @@ public class ProductService {
         return productRepository.findById(productId);
     }
 
+    @Transactional
+    public Optional<ProductEntity> getProductInfoWithLock(Long productId) {
+        return productRepository.getProductInfoWithLock(productId);
+    }
+
     @Transactional(readOnly = true)
     public Page<ProductEntity> getProductInfoList(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Integer size, Integer page) {
         if (page == null) {

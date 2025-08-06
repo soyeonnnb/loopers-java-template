@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+import static com.loopers.domain.product.QProductCountEntity.productCountEntity;
 import static com.loopers.domain.product.QProductEntity.productEntity;
 
 @RequiredArgsConstructor
@@ -47,6 +48,7 @@ public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository 
         List<ProductEntity> content = queryFactory
                 .select(productEntity)
                 .from(productEntity)
+                .join(productCountEntity)
                 .where(booleanBuilder)
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())

@@ -46,7 +46,8 @@ public class ProductEntity extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime saleStartAt;
 
-    @OneToOne(mappedBy = "product", fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_count_id", nullable = false)
     private ProductCountEntity productCount;
 
     protected ProductEntity() {
@@ -98,5 +99,13 @@ public class ProductEntity extends BaseEntity {
         if (this.quantity == 0) {
             this.status = ProductStatus.SOLD_OUT;
         }
+    }
+
+    public void increaseLikeCount() {
+        this.productCount.increaseLikeCount();
+    }
+
+    public void decreaseLikeCount() {
+        this.productCount.decreaseLikeCount();
     }
 }
