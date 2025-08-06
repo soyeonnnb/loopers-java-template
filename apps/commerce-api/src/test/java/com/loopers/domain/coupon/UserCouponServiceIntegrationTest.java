@@ -44,7 +44,7 @@ class UserCouponServiceIntegrationTest {
 
     @DisplayName("사용자 쿠폰을 조회할 때,")
     @Nested
-    class GetCouponInfo {
+    class GetUserCouponInfo {
         @DisplayName("정보가 존재하면, 사용자 쿠폰의 정보가 반환된다.")
         @Test
         void returnUserCouponInfo_whenValidCouponId() {

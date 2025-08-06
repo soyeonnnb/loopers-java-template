@@ -477,6 +477,11 @@ class OrderServiceIntegrationTest {
         private UserEntity userEntity;
         private OrderEntity orderEntity;
 
+        private UserCouponEntity userFlatCoupon;
+        private UserCouponEntity userRateCoupon;
+        private CouponEntity flatCoupon;
+        private CouponEntity rateCoupon;
+
         @BeforeEach
         void setup() {
             userEntity = userRepository.save(
@@ -501,7 +506,12 @@ class OrderServiceIntegrationTest {
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
             }
 
-            orderEntity = orderRepository.save(new OrderEntity(userEntity, 100L, null));
+            ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
+            flatCoupon = couponRepository.save(new CouponEntity("정액 쿠폰", "FLAT", 3000L, 200L, null, expiredAt));
+            userFlatCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, flatCoupon, expiredAt, null, null));
+            ReflectionTestUtils.setField(userFlatCoupon, "coupon", flatCoupon);
+
+            orderEntity = orderRepository.save(new OrderEntity(userEntity, 100L, userFlatCoupon));
             List<OrderItemEntity> orderItemEntityList = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
                 orderItemEntityList.add(orderItemRepository.save(new OrderItemEntity(orderEntity, productEntityList.get(i), (long) (i + 1))));
@@ -596,9 +606,9 @@ class OrderServiceIntegrationTest {
 
         }
 
-        @DisplayName("사용자의 주문 번호면 정상적으로 조회된다.")
+        @DisplayName("사용자의 주문 번호면 정상적으로 조회된다. (쿠폰 존재)")
         @Test
-        void success_whenValidParameter() {
+        void success_whenValidParameterWithCoupon() {
             // arrange
 
             // act
@@ -611,8 +621,36 @@ class OrderServiceIntegrationTest {
                     () -> assertEquals(userEntity.getId(), orderInfo.userInfo().id()),
                     () -> assertEquals(userEntity.getEmail(), orderInfo.userInfo().email()),
                     () -> assertEquals(orderEntity.getTotalPrice(), orderInfo.totalPrice()),
-                    () -> assertEquals(orderEntity.getItems().size(), orderInfo.items().size())
+                    () -> assertEquals(orderEntity.getItems().size(), orderInfo.items().size()),
+                    () -> assertEquals(userFlatCoupon.getId(), orderInfo.userCouponInfo().id()),
+                    () -> assertEquals(userFlatCoupon.getBeforePrice(), orderInfo.userCouponInfo().beforePrice()),
+                    () -> assertTrue(userFlatCoupon.getExpiredAt().isEqual(orderInfo.userCouponInfo().expiredAt())),
+                    () -> assertEquals(flatCoupon.getId(), orderInfo.userCouponInfo().coupon().id()),
+                    () -> assertEquals(flatCoupon.getMinOrderPrice(), orderInfo.userCouponInfo().coupon().minOrderPrice())
+            );
+        }
+
+        @DisplayName("사용자의 주문 번호면 정상적으로 조회된다. (쿠폰 미존재)")
+        @Test
+        void success_whenValidParameterWithoutCoupon() {
+            // arrange
+            ReflectionTestUtils.setField(orderEntity, "userCoupon", null);
+
+            // act
+            OrderInfo orderInfo = orderFacade.getUserOrder(LOGIN_ID, orderEntity.getId());
+
+            // assert
+            assertAll(
+                    () -> assertNotNull(orderInfo),
+                    () -> assertEquals(orderEntity.getId(), orderInfo.id()),
+                    () -> assertEquals(userEntity.getId(), orderInfo.userInfo().id()),
+                    () -> assertEquals(userEntity.getEmail(), orderInfo.userInfo().email()),
+                    () -> assertEquals(orderEntity.getTotalPrice(), orderInfo.totalPrice()),
+                    () -> assertEquals(orderEntity.getItems().size(), orderInfo.items().size()),
+                    () -> assertNull(orderEntity.getUserCoupon())
             );
         }
     }
 }
+
+
