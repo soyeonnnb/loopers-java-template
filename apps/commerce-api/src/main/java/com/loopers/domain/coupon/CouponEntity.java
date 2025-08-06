@@ -34,7 +34,7 @@ public class CouponEntity extends BaseEntity {
     @Schema(name = "할인률")
     private Double rate;
 
-    @Schema(name = "유효기간")
+    @Schema(name = "발급 후 유효기간")
     @Column(nullable = false)
     private ZonedDateTime expiryDate;
 

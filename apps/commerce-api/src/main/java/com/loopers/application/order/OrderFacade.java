@@ -68,7 +68,6 @@ public class OrderFacade {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.");
         }
 
-
         // 3. 주문 리스트 조회
         Page<OrderEntity> orderEntityPages = orderService.getUserOrderList(user, startDate, endDate, size, page);
         return orderEntityPages.get().map(OrderInfo::from).toList();
@@ -90,6 +89,13 @@ public class OrderFacade {
         // 3. 사용자 주문인지 확인
         orderDomainService.validateUserOwnsOrder(user, orderEntity);
 
-        return OrderInfo.from(orderEntity);
+        // 4. 쿠폰 존재 시 쿠폰 정보 조히
+        UserCouponEntity userCouponEntity = null;
+        if (orderEntity.getUserCoupon() != null) {
+            userCouponEntity = userCouponService.getCouponInfo(orderEntity.getUserCoupon().getId())
+                    .orElseThrow(() -> new CoreException(GlobalErrorType.INTERNAL_ERROR, "주문 데이터의 쿠폰을 찾을 수 없습니다."));
+        }
+
+        return OrderInfo.from(orderEntity, userCouponEntity);
     }
 }
