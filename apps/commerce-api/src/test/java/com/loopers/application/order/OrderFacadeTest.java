@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -270,6 +272,110 @@ class OrderFacadeTest {
                     () -> {
                         int size = orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(userEntity, ZonedDateTime.now().minusDays(10L), ZonedDateTime.now().plusDays(10L), PageRequest.of(0, 1000)).getNumberOfElements();
                         assertEquals(SIZE, size);
+                    }
+            );
+        }
+
+        @DisplayName("동일한 상품에 대해 여러 주문이 동시에 요청되어도, 재고가 정상적으로 차감되어야 한다.")
+        @Test
+        void successQuantityUse_whenConcurrencyOrder() throws InterruptedException {
+            // arrange
+            int SIZE = 200;
+            final long userDefaultPoint = 15000000L;
+            final long productDefaultQuantity = 30000L;
+            List<UserEntity> userEntityList = new ArrayList<>();
+            for (int i = 0; i < SIZE; i++) {
+                userEntityList.add(userRepository.save(Instancio.of(UserEntity.class)
+                        .set(field(UserEntity::getId), null)
+                        .set(field(UserEntity::getPoint), userDefaultPoint)
+                        .create()));
+            }
+
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .set(field(ProductEntity::getQuantity), productDefaultQuantity)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getPrice), 500L)
+                    .create();
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 0L);
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
+
+            List<OrderV1Dto.OrderRequest> requestList = new ArrayList<>();
+
+            int totalQuantity = 0;
+            for (int i = 0; i < SIZE; i++) {
+                int orderCount = i + 1;
+                long orderPrice = 500L * orderCount;
+                List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) orderCount));
+                requestList.add(new OrderV1Dto.OrderRequest(items, orderPrice, null));
+                totalQuantity += orderCount;
+            }
+
+            // act
+            ExecutorService executor = Executors.newFixedThreadPool(SIZE);
+            CountDownLatch latch = new CountDownLatch(SIZE);
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            AtomicInteger failureCount = new AtomicInteger(0);
+
+            for (int i = 0; i < SIZE; i++) {
+                int finalI = i;
+                executor.submit(() -> {
+                    try {
+                        orderFacade.order(userEntityList.get(finalI).getLoginId(), requestList.get(finalI));
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        failureCount.incrementAndGet();
+                        System.out.println("실패: " + e.getMessage());
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+
+            // assert
+            ProductEntity finalProductEntity = productEntity;
+            long finalTotalQuantity = totalQuantity;
+            assertAll(
+                    // 1. 모든 주문이 성공했는지 확인
+                    () -> assertThat(successCount.get()).isEqualTo(SIZE),
+                    () -> assertThat(failureCount.get()).isEqualTo(0),
+
+                    // 2. 상품 재고가 정확히 차감되었는지 확인
+                    () -> {
+                        ProductEntity updatedProduct = productRepository.findById(finalProductEntity.getId())
+                                .orElseThrow();
+                        assertEquals(productDefaultQuantity - finalTotalQuantity, updatedProduct.getQuantity());
+                    },
+
+                    // 3. 각 사용자의 포인트가 정확히 차감되었는지 확인
+                    () -> {
+                        for (int i = 0; i < SIZE; i++) {
+                            UserEntity updatedUser = userRepository.findByLoginId(userEntityList.get(i).getLoginId())
+                                    .orElseThrow(() -> new AssertionError("사용자를 찾을 수 없습니다"));
+                            long expectedPoint = userDefaultPoint - (500L * (i + 1));
+                            assertThat(updatedUser.getPoint()).isEqualTo(expectedPoint);
+                        }
+                    },
+
+                    // 4. 테스트 기간 동안 생성된 주문 개수 확인
+                    () -> {
+                        long totalOrders = 0;
+                        for (UserEntity user : userEntityList) {
+                            totalOrders += orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(
+                                    user,
+                                    ZonedDateTime.now().minusDays(1L),
+                                    ZonedDateTime.now().plusDays(1L),
+                                    PageRequest.of(0, 1000)
+                            ).getNumberOfElements();
+                        }
+                        assertThat(totalOrders).isEqualTo(SIZE);
                     }
             );
         }
