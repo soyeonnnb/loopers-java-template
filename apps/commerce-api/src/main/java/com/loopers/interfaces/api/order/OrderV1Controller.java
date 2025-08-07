@@ -35,7 +35,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
             @Schema(description = "페이지번호") @RequestParam("page") Integer page,
             @Schema(description = "페이지크기") @RequestParam("size") Integer size
     ) {
-        List<OrderInfo> orderInfoList = orderFacade.getUserInfoList(userId, startDate, endDate, page, size);
+        List<OrderInfo> orderInfoList = orderFacade.getUserOrderInfoList(userId, startDate, endDate, page, size);
         return ApiResponse.success(orderInfoList.stream().map(OrderV1Dto.OrderResponse::from).toList());
     }
 

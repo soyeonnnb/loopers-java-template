@@ -34,6 +34,11 @@ public class UserService {
     }
 
     @Transactional
+    public Optional<UserEntity> getUserInfoWithLock(String userId) {
+        return userRepository.findByLoginIdWithLock(userId);
+    }
+
+    @Transactional
     public UserEntity chargePoint(String userId, Long point) {
         UserEntity userEntity = userRepository.findByLoginId(userId).orElseThrow(() -> new CoreException(UserErrorType.USER_NOT_EXISTS));
         userEntity.chargePoint(point);

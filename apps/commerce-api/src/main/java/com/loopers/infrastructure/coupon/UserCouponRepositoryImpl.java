@@ -14,12 +14,17 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     private final UserCouponJpaRepository userCouponJpaRepository;
 
     @Override
-    public Optional<UserCouponEntity> findById(Long id) {
-        return userCouponJpaRepository.findById(id);
+    public Optional<UserCouponEntity> findByIdWithLock(Long id) {
+        return userCouponJpaRepository.findByIdWithLock(id);
     }
 
     @Override
     public UserCouponEntity save(UserCouponEntity userCouponEntity) {
         return userCouponJpaRepository.save(userCouponEntity);
+    }
+
+    @Override
+    public Optional<UserCouponEntity> findById(Long couponId) {
+        return userCouponJpaRepository.findById(couponId);
     }
 }

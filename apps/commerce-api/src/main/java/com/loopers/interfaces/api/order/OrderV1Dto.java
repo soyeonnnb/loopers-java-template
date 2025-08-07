@@ -18,7 +18,6 @@ public class OrderV1Dto {
 
     }
 
-
     public record OrderResponse(Long id, UserV1Dto.UserResponse userInfo, Long totalPrice,
                                 List<ProductV1Dto.ProductResponse> items, ZonedDateTime createdAt,
                                 UserCouponV1Dto.UserCouponResponse userCouponInfo) {

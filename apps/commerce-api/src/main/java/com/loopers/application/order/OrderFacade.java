@@ -38,19 +38,19 @@ public class OrderFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
         }
 
-        UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
+        UserEntity user = userService.getUserInfoWithLock(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
 
         // 2. 상품 정보 확인 및 재고 확인
         List<OrderCommand.OrderProduct> itemList = new ArrayList<>();
         for (OrderV1Dto.ProductOrderRequest productOrderRequest : request.items()) {
-            ProductEntity productEntity = productService.getProductInfo(productOrderRequest.id()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다."));
+            ProductEntity productEntity = productService.getProductInfoWithLock(productOrderRequest.id()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다."));
             itemList.add(new OrderCommand.OrderProduct(productEntity, productOrderRequest.quantity()));
         }
 
         // 3. 쿠폰 확인
         UserCouponEntity userCoupon = null;
         if (request.couponId() != null) {
-            userCoupon = userCouponService.getCouponInfo(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
+            userCoupon = userCouponService.getCouponInfoWithLock(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
         }
 
         // 4. 주문
@@ -59,7 +59,7 @@ public class OrderFacade {
         return OrderInfo.from(orderEntity);
     }
 
-    public List<OrderInfo> getUserInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
+    public List<OrderInfo> getUserOrderInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
         // 1. 사용자 정보 확인
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
