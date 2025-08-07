@@ -1,5 +1,11 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.coupon.CouponEntity;
+import com.loopers.domain.coupon.CouponRepository;
+import com.loopers.domain.coupon.UserCouponEntity;
+import com.loopers.domain.coupon.UserCouponRepository;
+import com.loopers.domain.order.OrderRepository;
+import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.interfaces.api.order.OrderV1Dto;
@@ -13,9 +19,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,8 +41,27 @@ class OrderFacadeTest {
     @Autowired
     private UserRepository userRepository;
 
+    @MockitoSpyBean
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+
+    @Autowired
+    private CouponRepository couponRepository;
+
+    @Autowired
+    private UserCouponRepository userCouponRepository;
+
+    @Autowired
+    private ProductCountRepository productCountRepository;
+
+    @Autowired
+    private BrandRepository brandRepository;
+
 
     @AfterEach
     void tearDown() {
@@ -92,6 +124,81 @@ class OrderFacadeTest {
                     () -> assertEquals(exception.getCustomMessage(), "상품 정보가 없습니다.")
             );
         }
+
+        @DisplayName("동일한 쿠폰으로 여러 기기에서 동시에 주문해도, 쿠폰은 단 한번만 사용되어야 한다.")
+        @Test
+        void successOnce_whenSameCoupon() throws InterruptedException {
+            // arrange
+            UserEntity userEntity = userRepository.save(
+                    Instancio.of(UserEntity.class)
+                            .set(field(UserEntity::getId), null)
+                            .set(field(UserEntity::getPoint), 1000000000L)
+                            .create());
+
+            ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
+            CouponEntity flatCoupon = couponRepository.save(new CouponEntity("정액 쿠폰", "FLAT", 3000L, 200L, null, expiredAt));
+
+            UserCouponEntity userFlatCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, flatCoupon, expiredAt, null, null));
+            ReflectionTestUtils.setField(userFlatCoupon, "coupon", flatCoupon);
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .set(field(ProductEntity::getQuantity), 1000L)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getPrice), 5000L)
+                    .create();
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 0L);
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
+
+            List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId());
+
+            // act
+            int SIZE = 50;
+            ExecutorService executor = Executors.newFixedThreadPool(SIZE);
+            CountDownLatch latch = new CountDownLatch(SIZE);
+
+            for (int i = 0; i < SIZE; i++) {
+                executor.submit(() -> {
+                    try {
+                        orderFacade.order(userEntity.getLoginId(), request);
+                    } catch (Exception e) {
+                        System.out.println("실패: " + e.getMessage());
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+
+            // assert
+            ProductEntity finalProductEntity = productEntity;
+            assertAll(
+                    () -> {
+                        UserCouponEntity newUserCouponEntity = userCouponRepository.findById(userFlatCoupon.getId()).orElse(null);
+                        assertNotNull(newUserCouponEntity);
+                        assertNotNull(newUserCouponEntity.getUsedAt());
+                    },
+                    () -> {
+                        UserEntity newUserEntity = userRepository.findByLoginId(userEntity.getLoginId()).orElse(null);
+                        assertNotNull(newUserEntity);
+                        assertEquals(1000000000L - 4800L, newUserEntity.getPoint());
+                    },
+                    () -> {
+                        ProductEntity newProductEntity = productRepository.findById(finalProductEntity.getId()).orElse(null);
+                        assertNotNull(newProductEntity);
+                        assertEquals(999L, newProductEntity.getQuantity());
+                    },
+                    () -> {
+                        int size = orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(userEntity, ZonedDateTime.now().minusDays(10L), ZonedDateTime.now().plusDays(10L), PageRequest.of(0, 1000)).getNumberOfElements();
+                        assertEquals(1, size);
+                    }
+            );
+        }
     }
 
     @DisplayName("사용자의 주문 리스트를 조회할 때,")
@@ -104,7 +211,7 @@ class OrderFacadeTest {
             // arrange
 
             // act
-            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserInfoList(null, null, null, 0, 1));
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrderInfoList(null, null, null, 0, 1));
 
             // assert
             assertAll(
@@ -122,7 +229,7 @@ class OrderFacadeTest {
             userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId).create());
 
             // act
-            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserInfoList(loginId, LocalDate.of(2025, 1, 1), LocalDate.of(2024, 1, 1), 0, 1));
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getUserOrderInfoList(loginId, LocalDate.of(2025, 1, 1), LocalDate.of(2024, 1, 1), 0, 1));
 
             // assert
             assertAll(
