@@ -6,6 +6,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public LikeEntity like(UserEntity userEntity, ProductEntity productEntity) {
         if (userEntity == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -29,14 +30,14 @@ public class LikeService {
         LikeEntity likeEntity = optionalLikeEntity.orElse(new LikeEntity(userEntity, productEntity, false));
 
         if (!likeEntity.getIsLike()) {
-            productEntity.getProductCount().increaseLikeCount();
+            productEntity.increaseLikeCount();
         }
 
         likeEntity.like();
         return likeRepository.save(likeEntity);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public LikeEntity dislike(UserEntity userEntity, ProductEntity productEntity) {
         if (userEntity == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -50,7 +51,7 @@ public class LikeService {
         } else {
             LikeEntity likeEntity = optionalLikeEntity.get();
             if (likeEntity.getIsLike()) {
-                productEntity.getProductCount().decreaseLikeCount();
+                productEntity.decreaseLikeCount();
             }
             likeEntity.dislike();
             return likeRepository.save(likeEntity);

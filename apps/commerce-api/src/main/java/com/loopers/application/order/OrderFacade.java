@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.domain.coupon.UserCouponEntity;
+import com.loopers.domain.coupon.UserCouponService;
 import com.loopers.domain.order.OrderDomainService;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderService;
@@ -27,6 +29,7 @@ public class OrderFacade {
     private final ProductService productService;
     private final OrderService orderService;
     private final OrderDomainService orderDomainService;
+    private final UserCouponService userCouponService;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
@@ -35,19 +38,28 @@ public class OrderFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
         }
 
-        UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
+        UserEntity user = userService.getUserInfoWithLock(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다."));
 
         // 2. 상품 정보 확인 및 재고 확인
         List<OrderCommand.OrderProduct> itemList = new ArrayList<>();
         for (OrderV1Dto.ProductOrderRequest productOrderRequest : request.items()) {
-            ProductEntity productEntity = productService.getProductInfo(productOrderRequest.id()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다."));
+            ProductEntity productEntity = productService.getProductInfoWithLock(productOrderRequest.id()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다."));
             itemList.add(new OrderCommand.OrderProduct(productEntity, productOrderRequest.quantity()));
         }
 
-        return OrderInfo.from(orderService.order(user, itemList, request.totalPrice()));
+        // 3. 쿠폰 확인
+        UserCouponEntity userCoupon = null;
+        if (request.couponId() != null) {
+            userCoupon = userCouponService.getCouponInfoWithLock(request.couponId()).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "쿠폰 ID에 해당하는 객체가 없습니다."));
+        }
+
+        // 4. 주문
+        OrderEntity orderEntity = orderService.order(user, itemList, request.totalPrice(), userCoupon);
+
+        return OrderInfo.from(orderEntity);
     }
 
-    public List<OrderInfo> getUserInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
+    public List<OrderInfo> getUserOrderInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {
         // 1. 사용자 정보 확인
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
@@ -58,7 +70,6 @@ public class OrderFacade {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "검색 시작 날짜는 검색 마지막날짜 이전이여야 합니다.");
         }
-
 
         // 3. 주문 리스트 조회
         Page<OrderEntity> orderEntityPages = orderService.getUserOrderList(user, startDate, endDate, size, page);
@@ -81,6 +92,13 @@ public class OrderFacade {
         // 3. 사용자 주문인지 확인
         orderDomainService.validateUserOwnsOrder(user, orderEntity);
 
-        return OrderInfo.from(orderEntity);
+        // 4. 쿠폰 존재 시 쿠폰 정보 조히
+        UserCouponEntity userCouponEntity = null;
+        if (orderEntity.getUserCoupon() != null) {
+            userCouponEntity = userCouponService.getCouponInfo(orderEntity.getUserCoupon().getId())
+                    .orElseThrow(() -> new CoreException(GlobalErrorType.INTERNAL_ERROR, "주문 데이터의 쿠폰을 찾을 수 없습니다."));
+        }
+
+        return OrderInfo.from(orderEntity, userCouponEntity);
     }
 }

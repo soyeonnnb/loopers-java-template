@@ -36,6 +36,7 @@ erDiagram
 		bigint user_id FK
 		timestamp ordered_at
 		long total_price
+		bigint user_coupon_id FK
 		timestamp created_at
 		timestamp updated_at
 		timestamp deleted_at
@@ -73,6 +74,31 @@ erDiagram
 		timestamp deleted_at
 	}
 
+	USER_COUPON {
+		bigint id PK
+		bigint user_id FK
+		bigint coupon_id
+		datetime expired_at
+		boolean isUsed
+		timestamp created_at
+		timestamp updated_at
+		timestamp deleted_at
+	}
+
+	COUPON {
+		bigint id PK
+		string name
+		string type
+		double rate
+		bigint min_order_price
+		bigint max_use_price
+		date expiry_date
+		timestamp created_at
+		timestamp updated_at
+		timestamp deleted_at
+	}
+
+
 	BRAND ||--o{ PRODUCT : contains
 	ORDERS ||--|{ ORDERS_ITEM : contains
 	PRODUCT ||--o{ ORDERS_ITEM : referenced
@@ -80,4 +106,7 @@ erDiagram
 	USER ||--o{ ORDERS : contains
 	USER ||--o{ LIKE : referenced
 	PRODUCT ||--o{ LIKE : referenced
+	ORDERS ||--o| USER_COUPON : referenced
+	COUPON ||--o{ USER_COUPON: referenced
+	USER ||--o{ USER_COUPON: referenced
 ```

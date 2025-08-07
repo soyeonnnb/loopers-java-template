@@ -27,4 +27,9 @@ public class UserRepositoryImpl implements UserRepository {
     public Optional<UserEntity> findByLoginId(String loginId) {
         return userJpaRepository.findByLoginId(loginId);
     }
+
+    @Override
+    public Optional<UserEntity> findByLoginIdWithLock(String loginId) {
+        return userJpaRepository.findByLoginIdWithLock(loginId);
+    }
 }

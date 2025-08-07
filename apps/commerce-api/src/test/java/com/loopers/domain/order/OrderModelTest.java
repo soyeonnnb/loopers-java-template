@@ -37,7 +37,7 @@ public class OrderModelTest {
 
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new OrderEntity(null, 1L)
+                    new OrderEntity(null, 1L, null)
             );
         }
 
@@ -49,7 +49,7 @@ public class OrderModelTest {
 
             // act & assert
             assertThrows(CoreException.class, () ->
-                    new OrderEntity(user, -1L)
+                    new OrderEntity(user, -1L, null)
             );
         }
     }

@@ -12,7 +12,10 @@ sequenceDiagram
 	U ->> BC: 브랜드 정보 조회 요청 (brandId)
 		activate U
 		activate BC
-				BC ->> BS:브랜드 정보 조회 (brandId)
+			alt brandId가 없음
+				BC -->> U: brandId가 없음
+			end
+			BC ->> BS:브랜드 정보 조회 (brandId)
 			activate BS
 				BS ->> BR: 브랜드 정보 조회 (brandId)
 				activate BR
@@ -38,9 +41,11 @@ sequenceDiagram
 	participant US as UserService
 	participant BS as BrandService
 	participant PS as ProductService
+	participant LS as LikeService
 	participant UR as UserRepository
 	participant BR as BrandRepository
 	participant PR as ProductRepository
+	participant LR as LikeRepository
 
 	U ->> PC: 상품 목록 조회 요청 (brandId, order, size, page)
 	activate U
@@ -80,6 +85,18 @@ sequenceDiagram
 				activate PR
 					PR -->> PS: 조건에 맞는 상품 목록 반환
 				deactivate PR
+				alt 로그인
+					loop productList
+						PS ->> LS: 상품 좋아요여부 조회
+						activate LS
+						LS ->> LR: 상품 좋아요 여부 검색
+							activate LR
+								LR -->> LS: 상품 좋아요 여부 반환
+							deactivate LR
+						LS -->> PS: 상품 좋아요여부 반환
+						deactivate LS
+					end
+				end
 				PS -->> PC: 상품 목록 반환
 			deactivate PS
 		PC -->> U: 상품 목록 반환
@@ -96,8 +113,10 @@ sequenceDiagram
 	participant PC as ProductController
 	participant PS as ProductService
 	participant US as UserService
+	participant LS as LikeService
 	participant UR as UserRepository
 	participant PR as ProductRepository
+	participant LR as LikeRepository
 
 	U ->> PC: 상품 정보 조회 요청 (productId)
 	activate U
@@ -116,9 +135,9 @@ sequenceDiagram
 					end
 				deactivate US
 			end
-			PC ->> PS: 상품 정보 조회 (user, productId)
+			PC ->> PS: 상품 정보 조회 (productId)
 			activate PS
-				PS ->> PR: 상품 정보 조회 (user, productId)
+				PS ->> PR: 상품 정보 조회 (productId)
 				activate PR
 					PR -->> PS: 상품 정보 반환
 				deactivate PR
@@ -128,6 +147,17 @@ sequenceDiagram
 					PS-->> PC: 상품 정보 반환
 				end
 			deactivate PS
+			alt 로그인
+				PC ->> LS: 좋아요 여부 검색 (user, product)
+				activate LS
+					LS ->> LR: 좋아요 여부 검색 (user, product)
+					activate LR
+						LR -->> LS: 좋아요 여부 반환 (like)
+					deactivate LR
+					LS -->> PC: 상품 좋아요 여부 반환
+				deactivate LS
+			end
+
 			PC -->> U: 상품 정보 반환
 		deactivate PC
 	deactivate U
@@ -517,9 +547,12 @@ sequenceDiagram
 	participant PS as ProductService
 	participant PR as ProductRepository
 	participant OS as OrderService
+	participant CS as CouponService
+	participant CDS as CouponDomainService
 	participant TP as ThirdParty
 	participant UR as UserRepository
 	participant OR as OrderRepository
+	participant CR as CouponRepository
 
 	U ->> OC: 주문 요청 (productList(productId, quantity), totalPrice)
 	activate U
@@ -554,10 +587,33 @@ sequenceDiagram
 				PS -->> OC: 상품 리스트 반환
 			deactivate PS
 
-			OC ->> OS: 상품 주문 요청 (user, productList(product), totalPrice)
+			OC ->> CS: 쿠폰 정보 조회 (couponId, user)
+			activate CS
+				CS ->> CR: 쿠폰 정보 조회
+				activate CR
+					CR -->> CS: 쿠폰 정보 반환
+				deactivate CR
+				CS ->> CDS: 사용 가능한 쿠폰인지 확인
+				activate CDS
+					alt 쿠폰이 존재하지 않는다면
+						CDS -->> CS : 400 Not Found
+					else 사용자의 쿠폰이 아니라면
+						CDS -->> CS : 403 Forbidden
+					else 이미 사용한 쿠폰이라면
+						CDS -->> CS: 409 Conflict
+					else
+						CDS -->> CS: 쿠폰 반환
+					end
+				CDS -->> CS: 쿠폰 정보 반환
+			deactivate CDS
+			CS -->> OC: 쿠폰 정보 반환
+			deactivate CS
+
+			OC ->> OS: 상품 주문 요청 (user, productList(product), totalPrice, coupon)
 			activate OS
 				activate OS
 					OS -->> OS: 전체 가격, 사용자 포인트 확인
+					OS -->> OS: 가격 유효성 확인
 				deactivate OS
 				alt 사용자 포인트 < totalPrice
 					OS -->> OC: 400 BadRequest
@@ -640,7 +696,9 @@ sequenceDiagram
 	participant OC as OrderController
 	participant OS as OrderService
 	participant US as UserService
+	participant UR as UserRepository
 	participant OR as OrderRepository
+
 
 	U ->> OC: 주문 상세 조회 요청 (orderId)
 	activate U
@@ -675,8 +733,64 @@ sequenceDiagram
 					OS -->> OC: 주문 상세 반환
 				end
 			deactivate OS
+
+			alt 쿠폰 사용 시
+				OC ->> CS: 쿠폰 조회
+				activate CS
+					CS ->> CR: 쿠폰 정보 조회
+					activate CR
+						CR -->> CS: 쿠폰 정보 반환
+					deactivate CR
+					CS -->> OC: 쿠폰 정보 반환
+				deactivate CS
+			end
 			OC -->> U: 주문 상세 반환
 		deactivate OC
+	deactivate U
+
+```
+
+# 🏷️ 쿠폰 (Coupon)
+
+## 13. 쿠폰 리스트 조회
+
+```mermaid
+sequenceDiagram
+	actor U as User
+	participant CC as CouponController
+	participant US as UserService
+	participant CS as CouponService
+	participant UR as UserRepository
+	participant CR as CouponRepository
+
+	U ->> CC: 쿠폰 리스트 조회 요청
+	activate U
+		activate CC
+			CC ->> US: 사용자 정보 조회 (X-USER-ID)
+			activate US
+				alt X-USER-ID 헤더 없음
+					US -->> CC: 401 UnAuthorized
+				end
+				US ->> UR: 사용자 정보 조회 (userId)
+				activate UR
+					UR -->> US: 사용자 정보 반환
+				deactivate UR
+				alt 사용자 정보 없음
+					US -->> CC: 401 UnAuthorized
+				else
+					US -->> CC: 사용자 정보 반환
+				end
+			deactivate US
+			CC ->> CS: 쿠폰 리스트 조회
+			activate CS
+				CS ->> CR: 쿠폰 리스트 조회
+				activate CR
+					CR -->> CS: 쿠폰 리스트 반환
+				deactivate CR
+			CS -->> CC: 쿠폰 리스트 반환
+			deactivate CS
+		CC -->> U: 사용자 쿠폰 리스트 반환
+		deactivate CC
 	deactivate U
 
 ```

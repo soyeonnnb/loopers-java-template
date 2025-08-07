@@ -100,9 +100,10 @@ class ProductV1ApiE2ETest {
                 String loginId = "la28s5d";
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 1L);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
 
                 likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
@@ -118,10 +119,11 @@ class ProductV1ApiE2ETest {
                         testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), responseType);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
                         () -> assertThat(response.getBody().data().id()).isEqualTo(id),
-                        () -> assertThat(response.getBody().data().name()).isEqualTo(productEntity.getName()),
+                        () -> assertThat(response.getBody().data().name()).isEqualTo(finalProductEntity.getName()),
                         () -> assertTrue(response.getBody().data().isLike())
                 );
             }
@@ -133,9 +135,10 @@ class ProductV1ApiE2ETest {
                 String loginId = "la28s5d";
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
 
                 Long id = productEntity.getId();
                 String url = ENDPOINT + "/" + id;
@@ -147,10 +150,11 @@ class ProductV1ApiE2ETest {
                         testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(loginId), responseType);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
                         () -> assertThat(response.getBody().data().id()).isEqualTo(id),
-                        () -> assertThat(response.getBody().data().name()).isEqualTo(productEntity.getName()),
+                        () -> assertThat(response.getBody().data().name()).isEqualTo(finalProductEntity.getName()),
                         () -> assertFalse(response.getBody().data().isLike())
                 );
             }
@@ -160,9 +164,10 @@ class ProductV1ApiE2ETest {
             void returnProductInfo_whenLogout() {
                 // arrange
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
                 Long id = productEntity.getId();
                 String url = ENDPOINT + "/" + id;
 
@@ -173,10 +178,11 @@ class ProductV1ApiE2ETest {
                         testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(null), responseType);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
                         () -> assertThat(response.getBody().data().id()).isEqualTo(id),
-                        () -> assertThat(response.getBody().data().name()).isEqualTo(productEntity.getName()),
+                        () -> assertThat(response.getBody().data().name()).isEqualTo(finalProductEntity.getName()),
                         () -> assertFalse(response.getBody().data().isLike())
                 );
             }

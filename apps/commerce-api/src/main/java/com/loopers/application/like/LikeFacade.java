@@ -11,6 +11,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,7 @@ public class LikeFacade {
     private final UserService userService;
     private final ProductService productService;
 
+    @Transactional
     public LikeInfo like(String userId, Long productId) {
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
@@ -32,7 +34,7 @@ public class LikeFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
         }
 
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
+        Optional<ProductEntity> optionalProductEntity = productService.getProductInfoWithLock(productId);
         if (optionalProductEntity.isEmpty()) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
         }
@@ -41,7 +43,7 @@ public class LikeFacade {
         return LikeInfo.from(likeEntity, optionalUserEntity.get(), optionalProductEntity.get());
     }
 
-
+    @Transactional
     public LikeInfo dislike(String userId, Long productId) {
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
@@ -52,7 +54,7 @@ public class LikeFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
         }
 
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
+        Optional<ProductEntity> optionalProductEntity = productService.getProductInfoWithLock(productId);
         if (optionalProductEntity.isEmpty()) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
         }

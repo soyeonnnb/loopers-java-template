@@ -1,6 +1,7 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -29,11 +30,15 @@ public class OrderEntity extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
 
+    @Schema(name = "사용 쿠폰")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserCouponEntity userCoupon;
+
     protected OrderEntity() {
 
     }
 
-    public OrderEntity(UserEntity user, Long totalPrice) {
+    public OrderEntity(UserEntity user, Long totalPrice, UserCouponEntity userCoupon) {
         if (user == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "주문 시, 사용자는 필수입니다.");
         }
@@ -47,6 +52,7 @@ public class OrderEntity extends BaseEntity {
         this.user = user;
         this.totalPrice = totalPrice;
         this.items = new ArrayList<>();
+        this.userCoupon = userCoupon;
     }
 
     public void addOrderItem(OrderItemEntity orderItem) {

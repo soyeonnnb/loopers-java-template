@@ -71,9 +71,10 @@ class ProductFacadeTest {
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
 
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 1L);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
 
                 Long id = productEntity.getId();
 
@@ -83,27 +84,28 @@ class ProductFacadeTest {
                 ProductInfo productInfo = productFacade.getProductInfo(loginId, id);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertThat(productInfo).isNotNull(),
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.id(), productEntity.getId());
+                            assertEquals(productInfo.id(), finalProductEntity.getId());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.name(), productEntity.getName());
+                            assertEquals(productInfo.name(), finalProductEntity.getName());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.price(), productEntity.getPrice());
+                            assertEquals(productInfo.price(), finalProductEntity.getPrice());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.quantity(), productEntity.getQuantity());
+                            assertEquals(productInfo.quantity(), finalProductEntity.getQuantity());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.description(), productEntity.getDescription());
+                            assertEquals(productInfo.description(), finalProductEntity.getDescription());
                         },
                         () -> {
                             assert productInfo != null;
@@ -133,9 +135,10 @@ class ProductFacadeTest {
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId + "1", "password", "la28s5d2@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
 
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 1L);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
 
                 Long id = productEntity.getId();
 
@@ -145,27 +148,28 @@ class ProductFacadeTest {
                 ProductInfo productInfo = productFacade.getProductInfo(loginId, id);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertThat(productInfo).isNotNull(),
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.id(), productEntity.getId());
+                            assertEquals(productInfo.id(), finalProductEntity.getId());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.name(), productEntity.getName());
+                            assertEquals(productInfo.name(), finalProductEntity.getName());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.price(), productEntity.getPrice());
+                            assertEquals(productInfo.price(), finalProductEntity.getPrice());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.quantity(), productEntity.getQuantity());
+                            assertEquals(productInfo.quantity(), finalProductEntity.getQuantity());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.description(), productEntity.getDescription());
+                            assertEquals(productInfo.description(), finalProductEntity.getDescription());
                         },
                         () -> {
                             assert productInfo != null;
@@ -194,9 +198,10 @@ class ProductFacadeTest {
                 UserEntity userEntity = userRepository.save(new UserEntity(loginId, "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
 
                 BrandEntity brandEntity = brandRepository.save(new BrandEntity("brand name"));
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 1L);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
                 Long id = productEntity.getId();
 
                 likeRepository.save(new LikeEntity(userEntity, productEntity, true));
@@ -205,27 +210,28 @@ class ProductFacadeTest {
                 ProductInfo productInfo = productFacade.getProductInfo(null, id);
 
                 // assert
+                ProductEntity finalProductEntity = productEntity;
                 assertAll(
                         () -> assertThat(productInfo).isNotNull(),
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.id(), productEntity.getId());
+                            assertEquals(productInfo.id(), finalProductEntity.getId());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.name(), productEntity.getName());
+                            assertEquals(productInfo.name(), finalProductEntity.getName());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.price(), productEntity.getPrice());
+                            assertEquals(productInfo.price(), finalProductEntity.getPrice());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.quantity(), productEntity.getQuantity());
+                            assertEquals(productInfo.quantity(), finalProductEntity.getQuantity());
                         },
                         () -> {
                             assert productInfo != null;
-                            assertEquals(productInfo.description(), productEntity.getDescription());
+                            assertEquals(productInfo.description(), finalProductEntity.getDescription());
                         },
                         () -> {
                             assert productInfo != null;
@@ -315,8 +321,10 @@ class ProductFacadeTest {
             // arrange
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
             for (int i = 0; i < 20; i++) {
-                ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품" + i, 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, i + 2, 0, 0, 0)));
-                productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+                ProductEntity productEntity = new ProductEntity(brandEntity, "상품" + i, 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, i + 2, 0, 0, 0));
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
+                ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productRepository.save(productEntity);
             }
 
             // act

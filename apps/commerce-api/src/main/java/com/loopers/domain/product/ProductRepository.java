@@ -15,4 +15,6 @@ public interface ProductRepository {
     Page<ProductEntity> findProductsByBrandOrderBySortOrder(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Pageable pageable);
 
     List<ProductEntity> saveAll(List<ProductEntity> productEntityList);
+
+    Optional<ProductEntity> getProductInfoWithLock(Long productId);
 }
