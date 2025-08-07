@@ -39,7 +39,6 @@ class LikeServiceIntegrationTest {
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
-
     @AfterEach
     void tearDown() {
         databaseCleanUp.truncateAllTables();
@@ -54,9 +53,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, true));
@@ -84,9 +84,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, false));
 
@@ -113,9 +114,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
             // act
             LikeEntity result = likeService.like(userEntity, productEntity);
@@ -141,9 +143,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity, 1L));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 1L);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, true));
 
@@ -170,9 +173,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
             LikeEntity likeEntity = likeRepository.save(new LikeEntity(userEntity, productEntity, false));
 
@@ -199,10 +203,10 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
-
+            productEntity = productRepository.save(productEntity);
             // act
             LikeEntity result = likeService.dislike(userEntity, productEntity);
 
@@ -238,14 +242,26 @@ class LikeServiceIntegrationTest {
             // arrange
             UserEntity userEntity = userRepository.save(new UserEntity("la28s5d", "password", "la28s5d@naver.com", "김소연", "소연", "2025-01-01", "FEMALE"));
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            ProductEntity productEntity1 = productRepository.save(new ProductEntity(brandEntity, "상품명1", 100L, 100L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductEntity productEntity2 = productRepository.save(new ProductEntity(brandEntity, "상품명2", 200L, 200L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductEntity productEntity3 = productRepository.save(new ProductEntity(brandEntity, "상품명3", 300L, 300L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductEntity productEntity4 = productRepository.save(new ProductEntity(brandEntity, "상품명4", 400L, 400L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            productCountRepository.save(new ProductCountEntity(productEntity1));
-            productCountRepository.save(new ProductCountEntity(productEntity2));
-            productCountRepository.save(new ProductCountEntity(productEntity3));
-            productCountRepository.save(new ProductCountEntity(productEntity4));
+
+            ProductEntity productEntity1 = new ProductEntity(brandEntity, "상품명1", 100L, 100L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity1 = new ProductCountEntity(productEntity1, 0L);
+            ReflectionTestUtils.setField(productEntity1, "productCount", productCountEntity1);
+            productEntity1 = productRepository.save(productEntity1);
+
+            ProductEntity productEntity2 = new ProductEntity(brandEntity, "상품명2", 200L, 200L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity2 = new ProductCountEntity(productEntity2, 0L);
+            ReflectionTestUtils.setField(productEntity2, "productCount", productCountEntity2);
+            productEntity2 = productRepository.save(productEntity2);
+
+            ProductEntity productEntity3 = new ProductEntity(brandEntity, "상품명3", 300L, 300L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity3 = new ProductCountEntity(productEntity3, 0L);
+            ReflectionTestUtils.setField(productEntity3, "productCount", productCountEntity3);
+            productEntity3 = productRepository.save(productEntity3);
+
+            ProductEntity productEntity4 = new ProductEntity(brandEntity, "상품명4", 400L, 400L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity4 = new ProductCountEntity(productEntity4, 0L);
+            ReflectionTestUtils.setField(productEntity4, "productCount", productCountEntity4);
+            productEntity4 = productRepository.save(productEntity4);
 
             LikeEntity likeEntity1 = likeRepository.save(new LikeEntity(userEntity, productEntity1, true));
             LikeEntity likeEntity2 = likeRepository.save(new LikeEntity(userEntity, productEntity2, true));

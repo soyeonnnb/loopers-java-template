@@ -48,7 +48,7 @@ public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository 
         List<ProductEntity> content = queryFactory
                 .select(productEntity)
                 .from(productEntity)
-                .join(productCountEntity)
+                .join(productEntity.productCount, productCountEntity)
                 .where(booleanBuilder)
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())

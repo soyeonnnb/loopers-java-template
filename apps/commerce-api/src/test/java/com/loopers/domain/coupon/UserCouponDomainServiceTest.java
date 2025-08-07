@@ -3,11 +3,9 @@ package com.loopers.domain.coupon;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
+import com.loopers.utils.DatabaseCleanUp;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -21,6 +19,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserCouponDomainServiceTest {
     @Autowired
     private UserCouponDomainService userCouponDomainService;
+
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
+
+    @AfterEach
+    void tearDown() {
+        databaseCleanUp.truncateAllTables();
+    }
 
     @DisplayName("사용자 쿠폰의 유효성을 확인할 때")
     @Nested

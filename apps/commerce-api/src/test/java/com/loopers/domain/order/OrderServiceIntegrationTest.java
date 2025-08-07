@@ -89,21 +89,19 @@ class OrderServiceIntegrationTest {
                     .set(field(UserEntity::getPoint), 10000000L)
                     .create());
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            List<ProductEntity> productEntityList = productRepository.saveAll(
-                    Instancio.ofList(ProductEntity.class)
-                            .size(4)
-                            .set(field(ProductEntity::getId), null)
-                            .set(field(ProductEntity::getBrand), brandEntity)
-                            .set(field(ProductEntity::getQuantity), 4L)
-                            .set(field(ProductEntity::getPrice), 500L)
-                            .set(field(ProductEntity::getProductCount), null)
-                            .set(field(ProductEntity::getStatus), ProductStatus.SALE)
-                            .create());
             itemList = new ArrayList<>();
             for (int i = 0; i < 4; i++) {
-                ProductEntity productEntity = productEntityList.get(i);
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                        .set(field(ProductEntity::getId), null)
+                        .set(field(ProductEntity::getBrand), brandEntity)
+                        .set(field(ProductEntity::getQuantity), 4L)
+                        .set(field(ProductEntity::getPrice), 500L)
+                        .set(field(ProductEntity::getProductCount), null)
+                        .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                        .create();
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntity = productRepository.save(productEntity);
                 itemList.add(new OrderCommand.OrderProduct(productEntity, (long) (i + 1)));
             }
         }
@@ -358,16 +356,16 @@ class OrderServiceIntegrationTest {
             UserEntity otherUserEntity = userRepository.save(Instancio.of(UserEntity.class).set(field(UserEntity::getId), null).set(field(UserEntity::getLoginId), loginId + "1").create());
 
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            List<ProductEntity> productEntityList = productRepository.saveAll(Instancio.ofList(ProductEntity.class)
-                    .size(20)
-                    .set(field(ProductEntity::getBrand), brandEntity)
-                    .set(field(ProductEntity::getId), null)
-                    .set(field(ProductEntity::getProductCount), null)
-                    .create());
+            List<ProductEntity> productEntityList = new ArrayList<>();
             for (int i = 0; i < 20; i++) {
-                ProductEntity productEntity = productEntityList.get(i);
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                        .set(field(ProductEntity::getBrand), brandEntity)
+                        .set(field(ProductEntity::getId), null)
+                        .set(field(ProductEntity::getProductCount), null)
+                        .create();
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntityList.add(productRepository.save(productEntity));
             }
 
             for (int i = 0; i < 20; i++) {
@@ -492,18 +490,18 @@ class OrderServiceIntegrationTest {
                             .create());
 
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
-            List<ProductEntity> productEntityList = productRepository.saveAll(Instancio.ofList(ProductEntity.class)
-                    .size(5)
-                    .set(field(ProductEntity::getBrand), brandEntity)
-                    .set(field(ProductEntity::getId), null)
-                    .set(field(ProductEntity::getProductCount), null)
-                    .set(field(ProductEntity::getQuantity), 1000L)
-                    .set(field(ProductEntity::getPrice), 50L)
-                    .create());
+            List<ProductEntity> productEntityList = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
-                ProductEntity productEntity = productEntityList.get(i);
-                ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+                ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                        .set(field(ProductEntity::getBrand), brandEntity)
+                        .set(field(ProductEntity::getId), null)
+                        .set(field(ProductEntity::getProductCount), null)
+                        .set(field(ProductEntity::getQuantity), 1000L)
+                        .set(field(ProductEntity::getPrice), 50L)
+                        .create();
+                ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
                 ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+                productEntityList.add(productRepository.save(productEntity));
             }
 
             ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
