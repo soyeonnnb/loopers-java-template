@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -196,6 +197,79 @@ class OrderFacadeTest {
                     () -> {
                         int size = orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(userEntity, ZonedDateTime.now().minusDays(10L), ZonedDateTime.now().plusDays(10L), PageRequest.of(0, 1000)).getNumberOfElements();
                         assertEquals(1, size);
+                    }
+            );
+        }
+
+        @DisplayName("동일한 유저가 여러 기기에서 동시에 주문에도, 포인트가 중복 차감되지 않아야 한다.")
+        @Test
+        void successPointUse_whenConcurrencyOrder() throws InterruptedException {
+            // arrange
+            UserEntity userEntity = userRepository.save(
+                    Instancio.of(UserEntity.class)
+                            .set(field(UserEntity::getId), null)
+                            .set(field(UserEntity::getPoint), 1000000000L)
+                            .create());
+
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .set(field(ProductEntity::getQuantity), 10000L)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getPrice), 500L)
+                    .create();
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 0L);
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
+
+            List<OrderV1Dto.OrderRequest> requestList = new ArrayList<>();
+            int SIZE = 50;
+            int totalQuantity = 0;
+            for (int i = 1; i <= SIZE; i++) {
+                List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) i));
+                requestList.add(new OrderV1Dto.OrderRequest(items, 500L * i, null));
+                totalQuantity += i;
+            }
+
+
+            // act
+            ExecutorService executor = Executors.newFixedThreadPool(SIZE);
+            CountDownLatch latch = new CountDownLatch(SIZE);
+
+            for (int i = 0; i < SIZE; i++) {
+                int finalI = i;
+                executor.submit(() -> {
+                    try {
+                        orderFacade.order(userEntity.getLoginId(), requestList.get(finalI));
+                    } catch (Exception e) {
+                        System.out.println("실패: " + e.getMessage());
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+
+            // assert
+            ProductEntity finalProductEntity = productEntity;
+            int finalTotalQuantity = totalQuantity;
+            assertAll(
+                    () -> {
+                        UserEntity newUserEntity = userRepository.findByLoginId(userEntity.getLoginId()).orElse(null);
+                        assertNotNull(newUserEntity);
+                        assertEquals(1000000000L - finalTotalQuantity * 500L, newUserEntity.getPoint());
+                    },
+                    () -> {
+                        ProductEntity newProductEntity = productRepository.findById(finalProductEntity.getId()).orElse(null);
+                        assertNotNull(newProductEntity);
+                        assertEquals(10000L - finalTotalQuantity, newProductEntity.getQuantity());
+                    },
+                    () -> {
+                        int size = orderRepository.findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(userEntity, ZonedDateTime.now().minusDays(10L), ZonedDateTime.now().plusDays(10L), PageRequest.of(0, 1000)).getNumberOfElements();
+                        assertEquals(SIZE, size);
                     }
             );
         }
