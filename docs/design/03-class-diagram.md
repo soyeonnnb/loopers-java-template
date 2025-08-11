@@ -1,27 +1,12 @@
 ```mermaid
 classDiagram
-	class Email {
-		-string email
-		+validate()
-	}
-	class BirthDate {
-		-localDateTime birthDate
-		+validate()
-		+toDate(dateString)
-	}
-	class Point {
-		-bigDecimal Point
-		+validate()
-		+charge(point)
-		+use(point)
-		+affordable(point)
-	}
+
 	class User {
 		-string id
 		-string gender
-		-BirthDate birth_date
-		-Email email
-		-Point point
+		-date birth_date
+		-string email
+		-long point
 		+chargePoint(point)
 		+usePoint(point)
 	}
@@ -43,12 +28,36 @@ classDiagram
 		+long getLikes()
 	}
 
+	class Coupon {
+		-long id
+		- string name
+		%%(FLAT정액, RATE정률)
+		-CouponSaleType type
+		%% 최소주문금액
+		-long minOrderPrice
+		%% 최대사용금액
+		-long maxUsePrice
+		%% 정률 시 할인 퍼센트
+		-double rate
+		-date expiryDate
+	}
+
+	class UserCoupon {
+		-long id
+		-User user
+		-date expiredAt
+		-boolean isUsed
+		-Order order
+		-Coupon coupon
+	}
+
 	class Order {
 		-long id
 		-User user
 		-timestamp ordered_at
 		-long total_price
 		-List<OrderItems> items
+		-Coupon coupon
 		+order(user, List<Product>, totalPrice)
 		+getOrderInfo(orderId)
 	}
@@ -91,12 +100,13 @@ classDiagram
 	Cart --> User
 
 	%% Order
-	Email "1" --> "1" User
-	BirthDate "1" --> "1" User
-	Point "1" --> "1" User
 	Order "1" *-- "N" OrderItem
-	OrderItem --> Producßßt
+	OrderItem --> Product
 	Order "N" --> "1" User
+	Coupon "1" --> "N" UserCoupon
+	UserCoupon "N" --> "1" User
+	Order "1" <-- "1" UserCoupon
+
 
 	%% Like
 	Like --> Product

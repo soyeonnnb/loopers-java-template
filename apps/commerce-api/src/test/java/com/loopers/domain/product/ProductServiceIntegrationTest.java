@@ -51,9 +51,10 @@ class ProductServiceIntegrationTest {
         void returnProductInfo_whenValidProductId() {
             // arrange
             BrandEntity brandEntity = brandRepository.save(new BrandEntity("test name"));
-            ProductEntity productEntity = productRepository.save(new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0)));
-            ProductCountEntity productCountEntity = productCountRepository.save(new ProductCountEntity(productEntity));
+            ProductEntity productEntity = new ProductEntity(brandEntity, "상품", 1L, 1L, ProductStatus.SALE, "설명", LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity);
             ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
 
             Long id = productEntity.getId();
 
@@ -61,16 +62,17 @@ class ProductServiceIntegrationTest {
             Optional<ProductEntity> result = productService.getProductInfo(id);
 
             // assert
+            ProductEntity finalProductEntity = productEntity;
             assertAll(
                     () -> assertThat(result).isNotNull(),
                     () -> {
                         assert Objects.requireNonNull(result).isPresent();
                     },
-                    () -> assertEquals(result.get().getId(), productEntity.getId()),
+                    () -> assertEquals(result.get().getId(), finalProductEntity.getId()),
                     () -> assertEquals(result.get().getBrand().getId(), brandEntity.getId()),
-                    () -> assertEquals(result.get().getName(), productEntity.getName()),
-                    () -> assertEquals(result.get().getPrice(), productEntity.getPrice()),
-                    () -> assertEquals(result.get().getQuantity(), productEntity.getQuantity()),
+                    () -> assertEquals(result.get().getName(), finalProductEntity.getName()),
+                    () -> assertEquals(result.get().getPrice(), finalProductEntity.getPrice()),
+                    () -> assertEquals(result.get().getQuantity(), finalProductEntity.getQuantity()),
                     () -> assertEquals(result.get().getProductCount().getLikeCount(), 0L)
             );
         }

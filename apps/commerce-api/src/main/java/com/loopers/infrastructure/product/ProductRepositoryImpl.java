@@ -38,4 +38,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<ProductEntity> saveAll(List<ProductEntity> productEntityList) {
         return productJpaRepository.saveAll(productEntityList);
     }
+
+    @Override
+    public Optional<ProductEntity> getProductInfoWithLock(Long productId) {
+        return productJpaRepository.getProductInfoWithLock(productId);
+    }
 }
