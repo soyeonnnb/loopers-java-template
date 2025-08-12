@@ -13,7 +13,16 @@ import java.util.Objects;
 
 @Entity
 @Getter
-@Table(name = "product")
+@Table(name = "product",
+        indexes = {
+                @Index(name = "idx_brand_id", columnList = "brand_id"),
+                @Index(name = "idx_brand_sale_start_at", columnList = "brand_id, sale_start_at"),
+                @Index(name = "idx_sale_start_at", columnList = "sale_start_at"),
+                @Index(name = "idx_price", columnList = "price"),
+                @Index(name = "idx_brand_sale_start_at", columnList = "brand_id, sale_start_at"),
+                @Index(name = "idx_brand_price", columnList = "brand_id, price")
+        }
+)
 public class ProductEntity extends BaseEntity {
 
     @Schema(name = "브랜드")

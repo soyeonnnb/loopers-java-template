@@ -34,21 +34,19 @@ public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository 
 
         OrderSpecifier<?> orderSpecifier;
         if (order == null) {
-            orderSpecifier = productEntity.createdAt.desc();
+            orderSpecifier = productEntity.saleStartAt.desc();
         } else {
             switch (order) {
-                case latest -> orderSpecifier = productEntity.saleStartAt.desc();
                 case likes_desc -> orderSpecifier = productEntity.productCount.likeCount.desc();
                 case price_asc -> orderSpecifier = productEntity.price.asc();
-                default -> orderSpecifier = productEntity.createdAt.desc();
+                default -> orderSpecifier = productEntity.saleStartAt.desc();
             }
         }
-
 
         List<ProductEntity> content = queryFactory
                 .select(productEntity)
                 .from(productEntity)
-                .join(productEntity.productCount, productCountEntity)
+                .join(productEntity.productCount, productCountEntity).fetchJoin()
                 .where(booleanBuilder)
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
