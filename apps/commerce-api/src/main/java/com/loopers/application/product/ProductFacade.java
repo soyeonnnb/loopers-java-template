@@ -57,7 +57,7 @@ public class ProductFacade {
         Optional<BrandEntity> optionalBrandEntity = Optional.empty();
         if (brandId != null) {
             optionalBrandEntity = brandService.getBrandInfo(brandId);
-            if (optionalUserEntity.isEmpty()) {
+            if (optionalBrandEntity.isEmpty()) {
                 throw new CoreException(GlobalErrorType.NOT_FOUND, "브랜드 정보를 찾을 수 없습니다.");
             }
         }
