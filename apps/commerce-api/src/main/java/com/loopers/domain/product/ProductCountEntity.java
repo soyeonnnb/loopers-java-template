@@ -8,11 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "product_count",
-        indexes = {
-                @Index(name = "idx_like_count", columnList = "like_count")
-        }
-)
+@Table(name = "product_count")
 @Getter
 public class ProductCountEntity extends BaseEntity {
     @JoinColumn
