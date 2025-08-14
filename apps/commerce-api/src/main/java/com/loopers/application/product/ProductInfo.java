@@ -11,7 +11,6 @@ public record ProductInfo(Long id, String name, Boolean isLike, BrandInfo brandI
     }
 
     public static ProductInfo from(ProductEntity productEntity) {
-        // 일단 좋아요는 false 처리 -> 기능 구현 후 수정
         return new ProductInfo(productEntity.getId(), productEntity.getName(), false, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount());
     }
 

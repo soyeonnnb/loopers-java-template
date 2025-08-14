@@ -94,7 +94,33 @@ class OrderFacadeTest {
         @Test
         void throws401Exception_whenInvalidUserId() {
             // arrange
-            OrderV1Dto.OrderRequest request = Instancio.create(OrderV1Dto.OrderRequest.class);
+            // arrange
+            UserEntity userEntity = userRepository.save(
+                    Instancio.of(UserEntity.class)
+                            .set(field(UserEntity::getId), null)
+                            .set(field(UserEntity::getPoint), 1000000000L)
+                            .create());
+
+            ZonedDateTime expiredAt = ZonedDateTime.now().plusDays(12);
+            CouponEntity flatCoupon = couponRepository.save(new CouponEntity("정액 쿠폰", "FLAT", 3000L, 200L, null, expiredAt));
+
+            UserCouponEntity userFlatCoupon = userCouponRepository.save(new UserCouponEntity(userEntity, flatCoupon, expiredAt, null, null));
+            ReflectionTestUtils.setField(userFlatCoupon, "coupon", flatCoupon);
+            BrandEntity brandEntity = brandRepository.save(new BrandEntity("브랜드"));
+            ProductEntity productEntity = Instancio.of(ProductEntity.class)
+                    .set(field(ProductEntity::getBrand), brandEntity)
+                    .set(field(ProductEntity::getId), null)
+                    .set(field(ProductEntity::getProductCount), null)
+                    .set(field(ProductEntity::getQuantity), 1000L)
+                    .set(field(ProductEntity::getStatus), ProductStatus.SALE)
+                    .set(field(ProductEntity::getPrice), 5000L)
+                    .create();
+            ProductCountEntity productCountEntity = new ProductCountEntity(productEntity, 0L);
+            ReflectionTestUtils.setField(productEntity, "productCount", productCountEntity);
+            productEntity = productRepository.save(productEntity);
+
+            List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId());
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order("la28s5d", request));
@@ -102,7 +128,7 @@ class OrderFacadeTest {
             // assert
             assertAll(
                     () -> assertEquals(exception.getErrorType(), GlobalErrorType.UNAUTHORIZED),
-                    () -> assertEquals(exception.getCustomMessage(), "사용자 정보가 없습니다.")
+                    () -> assertEquals("사용자를 찾을 수 없습니다.", exception.getCustomMessage())
             );
         }
 

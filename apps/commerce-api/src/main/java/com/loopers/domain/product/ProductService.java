@@ -6,7 +6,6 @@ import com.loopers.application.product.ProductSortOrder;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,9 +30,14 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "product", key = "'product:' + #productId")
     public ProductCacheDto getCachedProductInfo(Long productId) {
         Optional<ProductEntity> entity = productRepository.findById(productId);
+        String key = "product:" + productId;
+        if (entity.isPresent()) {
+            if (redisTemplate.opsForValue().get(key) == null) {
+                redisTemplate.opsForValue().set(key, ProductCacheDto.from(entity.get()));
+            }
+        }
         return entity.map(ProductCacheDto::from).orElse(null);
     }
 
@@ -75,5 +79,18 @@ public class ProductService {
             redisTemplate.opsForValue().set(key, new ProductCacheDtoList(cacheDtoList), 5, TimeUnit.MINUTES);
         }
         return cacheDtoList;
+    }
+
+    @Transactional
+    public ProductEntity getProductWithLockAndDecreaseQuantity(Long productId, Long quantity) {
+        ProductEntity productEntity = productRepository.getProductInfoWithLock(productId).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다."));
+        if (!productEntity.getStatus().equals(ProductStatus.SALE)) {
+            throw new CoreException(GlobalErrorType.CONFLICT, "상품이 판매중 상태가 아닙니다.");
+        }
+        productEntity.decreaseQuantity(quantity);
+        if (productEntity.getStatus() == ProductStatus.SOLD_OUT) {
+            redisTemplate.delete("product:" + productId);
+        }
+        return productEntity;
     }
 }
