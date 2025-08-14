@@ -45,4 +45,9 @@ public class UserService {
         return userEntity;
     }
 
+    @Transactional
+    public void usePoint(UserEntity userEntity, Long point) {
+        userEntity.usePoint(point);
+    }
+
 }

@@ -1,0 +1,67 @@
+spring:
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379} # 기본 6379
+    password: "${REDIS_PWD:}"  # 패스워드 없으면 빈값
+    timeout: 2000ms # 연결 타임아웃
+    lettuce:
+      pool:
+        max-active: 50   # 최대 커넥션 수
+        max-idle: 20     # 최대 유휴 커넥션 수
+        min-idle: 5      # 최소 유휴 커넥션 수
+        time-between-eviction-runs: 1000ms # 커넥션 풀 검사 주기
+  cache:
+    redis
+
+---
+spring.config.activate.on-profile: local
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    org.springframework.cache: DEBUG
+    org.springframework.data.redis: DEBUG
+    com.loopers.application.product.ProductService: DEBUG
+---
+spring.config.activate.on-profile: test
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 5
+        min-idle: 1
+
+---
+spring.config.activate.on-profile: dev
+
+spring:
+  redis:
+    host: dev-redis-host
+    port: 6379
+    password: dev-redis-pass
+
+---
+spring.config.activate.on-profile: qa
+
+spring:
+  redis:
+    host: qa-redis-host
+    port: 6379
+    password: qa-redis-pass
+
+---
+spring.config.activate.on-profile: prd
+
+spring:
+  redis:
+    host: prd-redis-host
+    port: 6379
+    password: prd-redis-pass

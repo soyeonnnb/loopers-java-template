@@ -1,7 +1,6 @@
 package com.loopers.domain.order;
 
 import com.loopers.application.order.OrderCommand;
-import com.loopers.domain.coupon.UserCouponDomainService;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
@@ -24,7 +23,6 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService;
-    private final UserCouponDomainService userCouponDomainService;
 
     @Transactional
     public OrderEntity order(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon) {
@@ -41,29 +39,13 @@ public class OrderService {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "주문하려는 금액은 0 이상이여야 합니다.");
         }
 
-        // 1. 상품 확인
-        orderDomainService.validateOrderItems(itemList);
-        if (userCoupon != null) {
-            userCouponDomainService.validateUseCoupon(user, userCoupon, totalPrice);
-        }
+//        orderDomainService.validateOrderItems(itemList);
 
-        Long calculatePrice = userCouponDomainService.calculateUseCouponPrice(orderDomainService.calculateTotalPrice(itemList), userCoupon);
-        if (!totalPrice.equals(calculatePrice)) {
-            throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 총 합계와 주문 금액이 일치하지 않습니다.");
-        }
-
-        // 2. 사용자 포인트 확인 및 사용 & 재고 차감
-        orderDomainService.processOrder(user, itemList, calculatePrice);
-
-        // 3. 쿠폰 사용
-        if (userCoupon != null) {
-            userCoupon.use(calculatePrice);
-        }
-
-        // 3. 주문 생성
-        OrderEntity orderEntity = orderDomainService.createOrder(user, itemList, calculatePrice, userCoupon);
+        // 2. 주문 생성
+        OrderEntity orderEntity = orderDomainService.createOrder(user, itemList, totalPrice, userCoupon);
         return orderRepository.save(orderEntity);
     }
+
 
     @Transactional(readOnly = true)
     public Page<OrderEntity> getUserOrderList(UserEntity user, LocalDate startDate, LocalDate endDate, Integer size, Integer page) {

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import static com.loopers.domain.product.QProductEntity.productEntity;
 public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public Page<ProductEntity> findProductsByBrandOrderBySortOrder(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Pageable pageable) {
@@ -34,21 +36,19 @@ public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository 
 
         OrderSpecifier<?> orderSpecifier;
         if (order == null) {
-            orderSpecifier = productEntity.createdAt.desc();
+            orderSpecifier = productEntity.saleStartAt.desc();
         } else {
             switch (order) {
-                case latest -> orderSpecifier = productEntity.saleStartAt.desc();
                 case likes_desc -> orderSpecifier = productEntity.productCount.likeCount.desc();
                 case price_asc -> orderSpecifier = productEntity.price.asc();
-                default -> orderSpecifier = productEntity.createdAt.desc();
+                default -> orderSpecifier = productEntity.saleStartAt.desc();
             }
         }
-
 
         List<ProductEntity> content = queryFactory
                 .select(productEntity)
                 .from(productEntity)
-                .join(productEntity.productCount, productCountEntity)
+                .join(productEntity.productCount, productCountEntity).fetchJoin()
                 .where(booleanBuilder)
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())

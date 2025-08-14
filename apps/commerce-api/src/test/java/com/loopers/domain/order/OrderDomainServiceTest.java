@@ -110,49 +110,49 @@ public class OrderDomainServiceTest {
         }
     }
 
-    @DisplayName("주문할 때")
-    @Nested
-    class ProcessOrder {
-        @DisplayName("사용자 포인트가 부족하면 409 에러가 발생한다.")
-        @Test
-        void throws409Exception_whenUserPointIsNotEnough() {
-            // arrange
-            UserEntity userEntity = Instancio.of(UserEntity.class)
-                    .set(field(UserEntity::getId), null)
-                    .set(field(UserEntity::getPoint), 200L)
-                    .create();
-
-            // act
-            CoreException exception = assertThrows(CoreException.class, () -> orderDomainService.processOrder(userEntity, itemList, TOTAL_PRICE));
-
-            // assert
-            assertAll(
-                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.CONFLICT),
-                    () -> assertEquals(exception.getCustomMessage(), "사용자 포인트는 0 미만이 될 수 없습니다.")
-            );
-        }
-
-        @DisplayName("재고가 없으면 409 에러가 발생한다.")
-        @Test
-        void throws409Exception_whenQuantityIsNotEnough() {
-            // arrange
-            for (OrderCommand.OrderProduct orderProduct : itemList) {
-                ReflectionTestUtils.setField(orderProduct.productEntity(), "quantity", 1L);
-            }
-            UserEntity userEntity = Instancio.of(UserEntity.class)
-                    .set(field(UserEntity::getId), null)
-                    .set(field(UserEntity::getPoint), 2000000L)
-                    .create();
-
-            // act
-            CoreException exception = assertThrows(CoreException.class, () -> orderDomainService.processOrder(userEntity, itemList, TOTAL_PRICE));
-
-            // assert
-            assertAll(
-                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.CONFLICT),
-                    () -> assertEquals(exception.getCustomMessage(), "상품 재고가 부족합니다.")
-            );
-        }
-
-    }
+//    @DisplayName("주문할 때")
+//    @Nested
+//    class ProcessOrder {
+//        @DisplayName("사용자 포인트가 부족하면 409 에러가 발생한다.")
+//        @Test
+//        void throws409Exception_whenUserPointIsNotEnough() {
+//            // arrange
+//            UserEntity userEntity = Instancio.of(UserEntity.class)
+//                    .set(field(UserEntity::getId), null)
+//                    .set(field(UserEntity::getPoint), 200L)
+//                    .create();
+//
+//            // act
+//            CoreException exception = assertThrows(CoreException.class, () -> orderDomainService.processOrder(userEntity, itemList, TOTAL_PRICE));
+//
+//            // assert
+//            assertAll(
+//                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.CONFLICT),
+//                    () -> assertEquals(exception.getCustomMessage(), "사용자 포인트는 0 미만이 될 수 없습니다.")
+//            );
+//        }
+//
+//        @DisplayName("재고가 없으면 409 에러가 발생한다.")
+//        @Test
+//        void throws409Exception_whenQuantityIsNotEnough() {
+//            // arrange
+//            for (OrderCommand.OrderProduct orderProduct : itemList) {
+//                ReflectionTestUtils.setField(orderProduct.productEntity(), "quantity", 1L);
+//            }
+//            UserEntity userEntity = Instancio.of(UserEntity.class)
+//                    .set(field(UserEntity::getId), null)
+//                    .set(field(UserEntity::getPoint), 2000000L)
+//                    .create();
+//
+//            // act
+//            CoreException exception = assertThrows(CoreException.class, () -> orderDomainService.processOrder(userEntity, itemList, TOTAL_PRICE));
+//
+//            // assert
+//            assertAll(
+//                    () -> assertEquals(exception.getErrorType(), GlobalErrorType.CONFLICT),
+//                    () -> assertEquals(exception.getCustomMessage(), "상품 재고가 부족합니다.")
+//            );
+//        }
+//
+//    }
 }

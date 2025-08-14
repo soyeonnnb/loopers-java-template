@@ -67,4 +67,8 @@ public class UserCouponDomainService {
             }
         }
     }
+
+    public void useCoupon(UserCouponEntity userCoupon, Long calculatePrice) {
+        userCoupon.use(calculatePrice);
+    }
 }

@@ -5,6 +5,7 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
 
     @Transactional(propagation = Propagation.REQUIRED)
+    @CacheEvict(value = "product", key = "'product:' + #productEntity.id")
     public LikeEntity like(UserEntity userEntity, ProductEntity productEntity) {
         if (userEntity == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -38,6 +40,7 @@ public class LikeService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    @CacheEvict(value = "product", key = "'product:' + #productEntity.id")
     public LikeEntity dislike(UserEntity userEntity, ProductEntity productEntity) {
         if (userEntity == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -67,15 +70,15 @@ public class LikeService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<LikeEntity> getUserLikeProduct(UserEntity userEntity, ProductEntity productEntity) {
-        if (userEntity == null) {
+    public Optional<LikeEntity> getUserLikeProduct(Long userId, Long productId) {
+        if (userId == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "사용자 정보가 없습니다.");
         }
 
-        if (productEntity == null) {
+        if (productId == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 정보가 없습니다.");
         }
 
-        return likeRepository.findByUserAndProduct(userEntity, productEntity);
+        return likeRepository.findByUserIdAndProductId(userId, productId);
     }
 }
