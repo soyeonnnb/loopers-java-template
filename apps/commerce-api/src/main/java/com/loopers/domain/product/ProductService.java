@@ -58,7 +58,7 @@ public class ProductService {
 
         String key = "product-list:" + ":sort:" + (order == null ? "default" : order) + ":page:" + page;
 
-        if (optionalBrandEntity.isEmpty() && page <= 3 && size == 20) {
+        if (optionalBrandEntity.isEmpty() && page <= 3 && (size == 20 || size == 30 || size == 50)) {
             @SuppressWarnings("unchecked")
             ProductCacheDtoList cached = (ProductCacheDtoList) redisTemplate.opsForValue().get(key);
             if (cached != null) {
@@ -71,7 +71,7 @@ public class ProductService {
         List<ProductCacheDto> cacheDtoList = productEntityPage.stream()
                 .map(ProductCacheDto::from)
                 .toList();
-        if (optionalBrandEntity.isEmpty() && page <= 3 && size == 20) {
+        if (optionalBrandEntity.isEmpty() && page <= 3 && (size == 20 || size == 30 || size == 50)) {
             redisTemplate.opsForValue().set(key, new ProductCacheDtoList(cacheDtoList), 5, TimeUnit.MINUTES);
         }
         return cacheDtoList;
