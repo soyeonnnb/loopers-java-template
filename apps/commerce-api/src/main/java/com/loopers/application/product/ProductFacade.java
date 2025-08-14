@@ -30,8 +30,9 @@ public class ProductFacade {
         if (productId == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 ID가 존재하지 않습니다.");
         }
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
-        if (optionalProductEntity.isEmpty()) {
+
+        ProductCacheDto productCacheDto = productService.getCachedProductInfo(productId);
+        if (productCacheDto == null) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 ID에 해당하는 데이터가 없습니다.");
         }
 
@@ -39,11 +40,11 @@ public class ProductFacade {
 
         boolean isLike = false;
         if (optionalUserEntity.isPresent()) {
-            Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get(), optionalProductEntity.get());
+            Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productId);
             isLike = optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike();
         }
 
-        return ProductInfo.from(optionalProductEntity.get(), isLike);
+        return ProductInfo.from(productCacheDto, isLike);
     }
 
     public List<ProductInfo> getProductInfoList(String userId, Long brandId, ProductSortOrder order, Integer size, Integer page) {
@@ -66,7 +67,7 @@ public class ProductFacade {
         List<ProductInfo> productInfoList = new ArrayList<>();
         if (optionalUserEntity.isPresent()) {
             for (ProductEntity productEntity : productEntityList) {
-                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get(), productEntity);
+                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productEntity.getId());
                 productInfoList.add(ProductInfo.from(productEntity, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));
             }
         } else {

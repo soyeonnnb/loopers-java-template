@@ -1,5 +1,6 @@
 package com.loopers.domain.product;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -7,12 +8,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "product_count")
 @Getter
-public class ProductCountEntity extends BaseEntity {
+public class ProductCountEntity extends BaseEntity implements Serializable {
     @JoinColumn
     @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private ProductEntity product;
 
     @Schema(name = "총 좋아요 수")

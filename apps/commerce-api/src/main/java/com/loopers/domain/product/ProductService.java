@@ -1,9 +1,11 @@
 package com.loopers.domain.product;
 
+import com.loopers.application.product.ProductCacheDto;
 import com.loopers.application.product.ProductSortOrder;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,13 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Optional<ProductEntity> getProductInfo(Long productId) {
         return productRepository.findById(productId);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "product", key = "'product:' + #productId")
+    public ProductCacheDto getCachedProductInfo(Long productId) {
+        Optional<ProductEntity> entity = productRepository.findById(productId);
+        return entity.map(ProductCacheDto::from).orElse(null);
     }
 
     @Transactional

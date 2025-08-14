@@ -8,13 +8,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
 @Getter
 @Table(name = "product")
-public class ProductEntity extends BaseEntity {
+public class ProductEntity extends BaseEntity implements Serializable {
 
     @Schema(name = "브랜드")
     @ManyToOne
