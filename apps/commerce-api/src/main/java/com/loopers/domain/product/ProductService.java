@@ -1,6 +1,7 @@
 package com.loopers.domain.product;
 
 import com.loopers.application.product.ProductCacheDto;
+import com.loopers.application.product.ProductCacheDtoList;
 import com.loopers.application.product.ProductSortOrder;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -9,16 +10,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional(readOnly = true)
     public Optional<ProductEntity> getProductInfo(Long productId) {
@@ -38,7 +43,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductEntity> getProductInfoList(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Integer size, Integer page) {
+    public List<ProductCacheDto> getProductInfoList(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Integer size, Integer page) {
         if (page == null) {
             page = 0;
         } else if (page < 0) {
@@ -50,7 +55,25 @@ public class ProductService {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "페이지 크기는 최소 1 이상이여야 합니다.");
         }
 
+
+        String key = "product-list:" + ":sort:" + (order == null ? "default" : order) + ":page:" + page;
+
+        if (optionalBrandEntity.isEmpty() && page <= 3 && size == 20) {
+            @SuppressWarnings("unchecked")
+            ProductCacheDtoList cached = (ProductCacheDtoList) redisTemplate.opsForValue().get(key);
+            if (cached != null) {
+                return cached.getList();
+            }
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        return productRepository.findProductsByBrandOrderBySortOrder(optionalBrandEntity, order, pageable);
+        Page<ProductEntity> productEntityPage = productRepository.findProductsByBrandOrderBySortOrder(optionalBrandEntity, order, pageable);
+        List<ProductCacheDto> cacheDtoList = productEntityPage.stream()
+                .map(ProductCacheDto::from)
+                .toList();
+        if (optionalBrandEntity.isEmpty() && page <= 3 && size == 20) {
+            redisTemplate.opsForValue().set(key, new ProductCacheDtoList(cacheDtoList), 5, TimeUnit.MINUTES);
+        }
+        return cacheDtoList;
     }
 }

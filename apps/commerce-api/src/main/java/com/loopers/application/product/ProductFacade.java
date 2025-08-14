@@ -4,14 +4,12 @@ import com.loopers.domain.like.LikeEntity;
 import com.loopers.domain.like.LikeService;
 import com.loopers.domain.product.BrandEntity;
 import com.loopers.domain.product.BrandService;
-import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -63,15 +61,15 @@ public class ProductFacade {
             }
         }
 
-        Page<ProductEntity> productEntityList = productService.getProductInfoList(optionalBrandEntity, order, size, page);
+        List<ProductCacheDto> productCacheDtoList = productService.getProductInfoList(optionalBrandEntity, order, size, page);
         List<ProductInfo> productInfoList = new ArrayList<>();
         if (optionalUserEntity.isPresent()) {
-            for (ProductEntity productEntity : productEntityList) {
-                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productEntity.getId());
-                productInfoList.add(ProductInfo.from(productEntity, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));
+            for (ProductCacheDto productCacheDto : productCacheDtoList) {
+                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productCacheDto.getId());
+                productInfoList.add(ProductInfo.from(productCacheDto, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));
             }
         } else {
-            productInfoList = productEntityList.stream().map(ProductInfo::from).toList();
+            productInfoList = productCacheDtoList.stream().map(ProductInfo::from).toList();
         }
         return productInfoList;
     }

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import static com.loopers.domain.product.QProductEntity.productEntity;
 public class ProductQuerydslRepositoryImpl implements ProductQuerydslRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public Page<ProductEntity> findProductsByBrandOrderBySortOrder(Optional<BrandEntity> optionalBrandEntity, ProductSortOrder order, Pageable pageable) {
