@@ -11,5 +11,7 @@ public interface LikeRepository {
 
     Optional<LikeEntity> findByUserAndProduct(UserEntity userEntity, ProductEntity productEntity);
 
+    Optional<LikeEntity> findByUserIdAndProductId(Long userId, Long productId);
+
     List<LikeEntity> findAllByUserAndIsLikeIsTrue(UserEntity userEntity);
 }

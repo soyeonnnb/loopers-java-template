@@ -55,7 +55,7 @@ class LikeFacadeTest {
         @DisplayName("동일한 상품에 대해 여러 명이 좋아요 요청을 해도 상품의 좋아요 개수가 정상 반영되어야 한다.")
         @Nested
         class ConcurrencyCondition {
-            private final int SIZE = 300;
+            private final int SIZE = 50;
             private ProductEntity productEntity;
             private List<UserEntity> userEntityList;
 

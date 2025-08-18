@@ -4,14 +4,12 @@ import com.loopers.domain.like.LikeEntity;
 import com.loopers.domain.like.LikeService;
 import com.loopers.domain.product.BrandEntity;
 import com.loopers.domain.product.BrandService;
-import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -30,8 +28,9 @@ public class ProductFacade {
         if (productId == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 ID가 존재하지 않습니다.");
         }
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
-        if (optionalProductEntity.isEmpty()) {
+
+        ProductCacheDto productCacheDto = productService.getCachedProductInfo(productId);
+        if (productCacheDto == null) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 ID에 해당하는 데이터가 없습니다.");
         }
 
@@ -39,11 +38,11 @@ public class ProductFacade {
 
         boolean isLike = false;
         if (optionalUserEntity.isPresent()) {
-            Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get(), optionalProductEntity.get());
+            Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productId);
             isLike = optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike();
         }
 
-        return ProductInfo.from(optionalProductEntity.get(), isLike);
+        return ProductInfo.from(productCacheDto, isLike);
     }
 
     public List<ProductInfo> getProductInfoList(String userId, Long brandId, ProductSortOrder order, Integer size, Integer page) {
@@ -57,20 +56,20 @@ public class ProductFacade {
         Optional<BrandEntity> optionalBrandEntity = Optional.empty();
         if (brandId != null) {
             optionalBrandEntity = brandService.getBrandInfo(brandId);
-            if (optionalUserEntity.isEmpty()) {
+            if (optionalBrandEntity.isEmpty()) {
                 throw new CoreException(GlobalErrorType.NOT_FOUND, "브랜드 정보를 찾을 수 없습니다.");
             }
         }
 
-        Page<ProductEntity> productEntityList = productService.getProductInfoList(optionalBrandEntity, order, size, page);
+        List<ProductCacheDto> productCacheDtoList = productService.getProductInfoList(optionalBrandEntity, order, size, page);
         List<ProductInfo> productInfoList = new ArrayList<>();
         if (optionalUserEntity.isPresent()) {
-            for (ProductEntity productEntity : productEntityList) {
-                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get(), productEntity);
-                productInfoList.add(ProductInfo.from(productEntity, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));
+            for (ProductCacheDto productCacheDto : productCacheDtoList) {
+                Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), productCacheDto.getId());
+                productInfoList.add(ProductInfo.from(productCacheDto, optionalLikeEntity.isPresent() && optionalLikeEntity.get().getIsLike()));
             }
         } else {
-            productInfoList = productEntityList.stream().map(ProductInfo::from).toList();
+            productInfoList = productCacheDtoList.stream().map(ProductInfo::from).toList();
         }
         return productInfoList;
     }
