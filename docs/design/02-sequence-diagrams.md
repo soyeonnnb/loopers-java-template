@@ -549,6 +549,7 @@ sequenceDiagram
 	participant OS as OrderService
 	participant CS as CouponService
 	participant CDS as CouponDomainService
+	participant PS as PaymentService
 	participant TP as ThirdParty
 	participant UR as UserRepository
 	participant OR as OrderRepository

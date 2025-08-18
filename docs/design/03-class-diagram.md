@@ -58,6 +58,7 @@ classDiagram
 		-long total_price
 		-List<OrderItems> items
 		-Coupon coupon
+		-PaymentMethod method
 		+order(user, List<Product>, totalPrice)
 		+getOrderInfo(orderId)
 	}
@@ -93,6 +94,20 @@ classDiagram
 		+dislike(user, product)
 	}
 
+	class CardPayment {
+		-long id
+		-Order order
+		-PaymentStatus status
+		-Card card
+	}
+
+	class Card {
+		-long id
+		-User user
+		-CardType type
+		-string cardNo
+	}
+
 	%% Product
 	Brand "1" o-- "N" Product
 	Cart "1" *-- "N" CartItem
@@ -106,6 +121,10 @@ classDiagram
 	Coupon "1" --> "N" UserCoupon
 	UserCoupon "N" --> "1" User
 	Order "1" <-- "1" UserCoupon
+	Order "N" --> "1" CardPayment
+
+	User "1" --> "N" Card
+	CardPayment "N" --> "1" Card
 
 
 	%% Like
