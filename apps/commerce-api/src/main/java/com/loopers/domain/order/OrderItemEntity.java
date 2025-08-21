@@ -27,6 +27,7 @@ public class OrderItemEntity extends BaseEntity {
     private Long price;
 
     @Schema(name = "개수")
+    @Column(nullable = false)
     private Long quantity;
 
     protected OrderItemEntity() {

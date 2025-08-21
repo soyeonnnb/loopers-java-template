@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository {
@@ -13,4 +14,8 @@ public interface OrderRepository {
     Page<OrderEntity> findOrdersByUserAndStartDateAndEndDateOrderByCreatedAtDesc(UserEntity user, ZonedDateTime startDate, ZonedDateTime endDate, Pageable pageable);
 
     Optional<OrderEntity> findById(Long orderId);
+
+    Optional<OrderEntity> findByUuidAndPaymentTransactionKeyWithLock(String orderUUID, String transactionKey);
+
+    List<OrderEntity> findOrdersByStatusAndCreatedAtBetweenWithCardPay(OrderStatus orderStatus, ZonedDateTime before2Minutes, ZonedDateTime before1Minutes);
 }

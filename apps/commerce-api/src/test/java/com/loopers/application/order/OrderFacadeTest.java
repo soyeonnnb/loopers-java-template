@@ -5,10 +5,12 @@ import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.coupon.UserCouponRepository;
 import com.loopers.domain.order.OrderRepository;
+import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.interfaces.api.order.OrderV1Dto;
+import com.loopers.interfaces.api.payment.PaymentV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import com.loopers.utils.DatabaseCleanUp;
@@ -65,6 +67,9 @@ class OrderFacadeTest {
     @Autowired
     private BrandRepository brandRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
 
     @AfterEach
     void tearDown() {
@@ -120,7 +125,8 @@ class OrderFacadeTest {
             productEntity = productRepository.save(productEntity);
 
             List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
-            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId());
+            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 4800L, null);
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId(), payment);
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order("la28s5d", request));
@@ -142,7 +148,8 @@ class OrderFacadeTest {
                             .set(field(UserEntity::getId), null)
                             .set(field(UserEntity::getLoginId), loginId)
                             .create());
-            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(List.of(new OrderV1Dto.ProductOrderRequest(9999L, 100L)), 100L, null);
+            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 100L, null);
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(List.of(new OrderV1Dto.ProductOrderRequest(9999L, 100L)), 100L, null, payment);
 
             // act
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(loginId, request));
@@ -183,7 +190,8 @@ class OrderFacadeTest {
             productEntity = productRepository.save(productEntity);
 
             List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
-            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId());
+            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 4800L, null);
+            OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId(), payment);
 
             // act
             int SIZE = 50;
@@ -257,7 +265,8 @@ class OrderFacadeTest {
             int totalQuantity = 0;
             for (int i = 1; i <= SIZE; i++) {
                 List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) i));
-                requestList.add(new OrderV1Dto.OrderRequest(items, 500L * i, null));
+                PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 500L * i, null);
+                requestList.add(new OrderV1Dto.OrderRequest(items, 500L * i, null, payment));
                 totalQuantity += i;
             }
 
@@ -337,7 +346,8 @@ class OrderFacadeTest {
                 int orderCount = i + 1;
                 long orderPrice = 500L * orderCount;
                 List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) orderCount));
-                requestList.add(new OrderV1Dto.OrderRequest(items, orderPrice, null));
+                PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", orderPrice, null);
+                requestList.add(new OrderV1Dto.OrderRequest(items, orderPrice, null, payment));
                 totalQuantity += orderCount;
             }
 

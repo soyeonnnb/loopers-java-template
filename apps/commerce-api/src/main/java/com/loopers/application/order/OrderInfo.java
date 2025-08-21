@@ -11,13 +11,20 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public record OrderInfo(Long id, UserInfo userInfo, Long totalPrice, List<ProductInfo> items, ZonedDateTime createdAt,
-                        UserCouponInfo userCouponInfo) {
+                        UserCouponInfo userCouponInfo, Boolean payResult) {
     public static OrderInfo from(OrderEntity orderEntity) {
-        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(orderEntity.getUserCoupon()));
+        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(orderEntity.getUserCoupon()), true);
     }
 
     public static OrderInfo from(OrderEntity orderEntity, UserCouponEntity userCoupon) {
-        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(userCoupon));
+        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(userCoupon), true);
     }
 
+    public static OrderInfo from(OrderEntity orderEntity, Boolean payResult) {
+        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(orderEntity.getUserCoupon()), payResult);
+    }
+
+    public static OrderInfo from(OrderEntity orderEntity, UserCouponEntity userCoupon, Boolean payResult) {
+        return new OrderInfo(orderEntity.getId(), UserInfo.from(orderEntity.getUser()), orderEntity.getTotalPrice(), orderEntity.getItems().stream().map(OrderItemEntity::getProduct).map(ProductInfo::from).toList(), orderEntity.getCreatedAt(), UserCouponInfo.from(userCoupon), payResult);
+    }
 }

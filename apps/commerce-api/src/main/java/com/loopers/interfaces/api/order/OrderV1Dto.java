@@ -2,6 +2,7 @@ package com.loopers.interfaces.api.order;
 
 import com.loopers.application.order.OrderInfo;
 import com.loopers.interfaces.api.coupon.UserCouponV1Dto;
+import com.loopers.interfaces.api.payment.PaymentV1Dto;
 import com.loopers.interfaces.api.product.ProductV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public class OrderV1Dto {
-    public record OrderRequest(@NotNull List<ProductOrderRequest> items, @NotNull Long totalPrice, Long couponId) {
+    public record OrderRequest(@NotNull List<ProductOrderRequest> items, @NotNull Long totalPrice, Long couponId,
+                               @NotNull PaymentV1Dto.PaymentRequest payment) {
 
     }
 
