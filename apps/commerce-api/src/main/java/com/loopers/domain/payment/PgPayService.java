@@ -8,6 +8,7 @@ import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -17,7 +18,7 @@ public class PgPayService {
 
     private final PaymentGateway paymentGateway;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Boolean pay(OrderEntity order) {
         if (order == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "카드 결제 시, 주문 정보는 필수입니다.");

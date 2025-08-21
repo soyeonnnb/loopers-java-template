@@ -13,7 +13,6 @@ import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -44,7 +43,7 @@ public class PaymentService {
         order.addPayment(paymentEntity);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public Boolean payment(UserEntity user, OrderEntity order) {
         switch (order.getPayment().getMethod()) {
             case POINT -> {

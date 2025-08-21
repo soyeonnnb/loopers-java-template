@@ -125,7 +125,7 @@ class OrderFacadeTest {
             productEntity = productRepository.save(productEntity);
 
             List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
-            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 4800L, null);
+            PaymentV1Dto.PaymentRequest payment = new PaymentV1Dto.PaymentRequest("POINT", null);
             OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId(), payment);
 
             // act
@@ -148,7 +148,7 @@ class OrderFacadeTest {
                             .set(field(UserEntity::getId), null)
                             .set(field(UserEntity::getLoginId), loginId)
                             .create());
-            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 100L, null);
+            PaymentV1Dto.PaymentRequest payment = new PaymentV1Dto.PaymentRequest("POINT", null);
             OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(List.of(new OrderV1Dto.ProductOrderRequest(9999L, 100L)), 100L, null, payment);
 
             // act
@@ -190,7 +190,7 @@ class OrderFacadeTest {
             productEntity = productRepository.save(productEntity);
 
             List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), 1L));
-            PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 4800L, null);
+            PaymentV1Dto.PaymentRequest payment = new PaymentV1Dto.PaymentRequest("POINT", null);
             OrderV1Dto.OrderRequest request = new OrderV1Dto.OrderRequest(items, 4800L, userFlatCoupon.getId(), payment);
 
             // act
@@ -265,7 +265,7 @@ class OrderFacadeTest {
             int totalQuantity = 0;
             for (int i = 1; i <= SIZE; i++) {
                 List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) i));
-                PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", 500L * i, null);
+                PaymentV1Dto.PaymentRequest payment = new PaymentV1Dto.PaymentRequest("POINT", null);
                 requestList.add(new OrderV1Dto.OrderRequest(items, 500L * i, null, payment));
                 totalQuantity += i;
             }
@@ -346,7 +346,7 @@ class OrderFacadeTest {
                 int orderCount = i + 1;
                 long orderPrice = 500L * orderCount;
                 List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) orderCount));
-                PaymentV1Dto.PaymentOrderRequest payment = new PaymentV1Dto.PaymentOrderRequest("POINT", orderPrice, null);
+                PaymentV1Dto.PaymentRequest payment = new PaymentV1Dto.PaymentRequest("POINT", null);
                 requestList.add(new OrderV1Dto.OrderRequest(items, orderPrice, null, payment));
                 totalQuantity += orderCount;
             }
