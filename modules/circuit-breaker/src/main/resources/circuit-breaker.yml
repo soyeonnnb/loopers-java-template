@@ -1,0 +1,54 @@
+resilience4j:
+  retry:
+    instances:
+      pgRequest:
+        max-attempts: 3 # 최대 3번 재시도 (총 4번 호출)
+        wait-duration: 1s # 재시도 간격
+        exponential-backoff-multiplier: 2 # 지수백오프 (1s, 2s, 4s)
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.HttpServerErrorException$InternalServerError
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - com.loopers.support.error.CoreException
+
+  circuitbreaker:
+    instances:
+      pgRequest:
+        sliding-window-size: 10 # 슬라이딩 윈도우 크기
+        sliding-window-type: count_based # 호출 횟수 기반
+        minimum-number-of-calls: 5 # 최소 호출 횟수
+        failure-rate-threshold: 50 # 실패율 임계값 (50%)
+        slow-call-rate-threshold: 50 # 느린 호출 비율 임계값
+        slow-call-duration-threshold: 3s # 느린 호출 기준 시간
+        wait-duration-in-open-state: 10s # OPEN 상태 유지 시간
+        permitted-number-of-calls-in-half-open-state: 3  # HALF_OPEN에서 허용할 호출 수
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          #          - org.springframework.web.client.HttpServerErrorException
+          #          - org.springframework.web.client.HttpServerErrorException$InternalServerError
+          - java.util.concurrent.TimeoutException
+        ignore-exceptions:
+          - com.loopers.support.error.CoreException
+
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+    com.loopers.infrastructure.payment: DEBUG
+---
+spring.config.activate.on-profile: local
+
+---
+spring.config.activate.on-profile: test
+
+---
+spring.config.activate.on-profile: dev
+
+---
+spring.config.activate.on-profile: qa
+
+---
+spring.config.activate.on-profile: prd
