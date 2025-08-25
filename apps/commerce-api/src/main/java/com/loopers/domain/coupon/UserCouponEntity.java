@@ -66,4 +66,9 @@ public class UserCouponEntity extends BaseEntity {
         this.usedAt = ZonedDateTime.now();
         this.beforePrice = beforePrice;
     }
+
+    public void rollback() {
+        this.usedAt = null;
+        this.beforePrice = null;
+    }
 }

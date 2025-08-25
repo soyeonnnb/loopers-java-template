@@ -108,6 +108,9 @@ public class OrderService {
         for (OrderItemEntity orderItem : order.getItems()) {
             orderItem.getProduct().increaseQuantity(orderItem.getQuantity());
         }
+        if (order.getUserCoupon() != null) {
+            order.getUserCoupon().rollback();
+        }
     }
 
     @Transactional
