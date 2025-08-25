@@ -1,6 +1,5 @@
 package com.loopers.application.order;
 
-import com.loopers.application.payment.PaymentCommand;
 import com.loopers.domain.coupon.UserCouponDomainService;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.coupon.UserCouponService;
@@ -73,11 +72,9 @@ public class OrderFacade {
             userCouponDomainService.useCoupon(userCoupon, calculatePrice);
         }
 
-        // 7. 결제 정보 확인
-        PaymentCommand.Payment paymentCommand = new PaymentCommand.Payment(request.payment().method(), request.totalPrice(), request.payment().cardId());
-
         // 7. 주문
-        OrderEntity orderEntity = orderService.order(user, itemList, calculatePrice, userCoupon, paymentCommand);
+        OrderEntity orderEntity = orderService.order(user, itemList, calculatePrice, userCoupon);
+        paymentService.addPaymentToOrder(orderEntity, request.payment().method(), request.payment().cardId());
 
         // 8. 결제
         Boolean result = paymentService.payment(user, orderEntity);

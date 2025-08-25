@@ -1,6 +1,5 @@
 package com.loopers.domain.payment;
 
-import com.loopers.application.payment.PaymentCommand;
 import com.loopers.application.payment.PaymentGateway;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderRepository;
@@ -34,12 +33,13 @@ public class PaymentService {
         else return cardRepository.findById(cardId);
     }
 
-    public void addPaymentToOrder(OrderEntity order, PaymentCommand.Payment paymentCommand) {
-        CardEntity card = getCardInfo(paymentCommand.cardId()).orElse(null);
+    @Transactional
+    public void addPaymentToOrder(OrderEntity order, String method, Long cardId) {
+        CardEntity card = getCardInfo(cardId).orElse(null);
         if (card != null && !card.getUser().getId().equals(order.getUser().getId())) {
             throw new CoreException(GlobalErrorType.FORBIDDEN, "사용자 카드가 아닙니다.");
         }
-        PaymentEntity paymentEntity = new PaymentEntity(order, PaymentMethod.from(paymentCommand.method()), card, PaymentStatus.PENDING);
+        PaymentEntity paymentEntity = new PaymentEntity(order, PaymentMethod.from(method), card, PaymentStatus.PENDING);
         order.addPayment(paymentEntity);
     }
 
