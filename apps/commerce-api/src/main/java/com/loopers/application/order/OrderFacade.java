@@ -1,11 +1,13 @@
 package com.loopers.application.order;
 
+import com.loopers.application.payment.PaymentCommand;
 import com.loopers.domain.coupon.UserCouponDomainService;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.coupon.UserCouponService;
 import com.loopers.domain.order.OrderDomainService;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderService;
+import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserEntity;
@@ -32,6 +34,7 @@ public class OrderFacade {
     private final OrderService orderService;
     private final OrderDomainService orderDomainService;
     private final UserCouponService userCouponService;
+    private final PaymentService paymentService;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
@@ -47,9 +50,10 @@ public class OrderFacade {
             itemList.add(new OrderCommand.OrderProduct(productEntity, productOrderRequest.quantity()));
         }
 
-        // 3. 사용자 포인트 차감
-        UserEntity user = userService.getUserInfo(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자를 찾을 수 없습니다."));
+        // 3. 사용자 확인
+        UserEntity user = userService.getUserInfoWithLock(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자를 찾을 수 없습니다."));
         Long totalPrice = orderDomainService.calculateTotalPrice(itemList);
+
 
         // 4. 쿠폰 확인
         UserCouponEntity userCoupon = null;
@@ -64,18 +68,20 @@ public class OrderFacade {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 총 합계와 주문 금액이 일치하지 않습니다.");
         }
 
-        // 6. 포인트 사용
-        userService.usePoint(user, request.totalPrice());
-
-        // 7. 쿠폰 사용
+        // 6. 쿠폰 사용
         if (userCoupon != null) {
             userCouponDomainService.useCoupon(userCoupon, calculatePrice);
         }
 
-        // 8. 주문
-        OrderEntity orderEntity = orderService.order(user, itemList, calculatePrice, userCoupon);
+        // 7. 결제 정보 확인
+        PaymentCommand.Payment paymentCommand = new PaymentCommand.Payment(request.payment().method(), request.totalPrice(), request.payment().cardId());
 
-        return OrderInfo.from(orderEntity);
+        // 7. 주문
+        OrderEntity orderEntity = orderService.order(user, itemList, calculatePrice, userCoupon, paymentCommand);
+
+        // 8. 결제
+        Boolean result = paymentService.payment(user, orderEntity);
+        return OrderInfo.from(orderEntity, result);
     }
 
     public List<OrderInfo> getUserOrderInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {

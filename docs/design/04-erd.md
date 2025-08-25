@@ -98,6 +98,26 @@ erDiagram
 		timestamp deleted_at
 	}
 
+	CARD_PAYMENT {
+		bigint id PK
+		bigint order_id FK
+		bigint card_id FK
+		string status
+		timestamp created_at
+		timestamp updated_at
+		timestamp deleted_at
+	}
+
+	CARD {
+		bigint id PK
+		bigint user_id FK
+		string type
+		string number
+		timestamp created_at
+		timestamp updated_at
+		timestamp deleted_at
+	}
+
 
 	BRAND ||--o{ PRODUCT : contains
 	ORDERS ||--|{ ORDERS_ITEM : contains

@@ -3,6 +3,8 @@ package com.loopers.interfaces.api.order;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.GlobalErrorType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,11 @@ public class OrderV1Controller implements OrderV1ApiSpec {
             @RequestHeader("X-USER-ID") String userId,
             @RequestBody OrderV1Dto.OrderRequest orderRequest) {
         OrderInfo orderInfo = orderFacade.order(userId, orderRequest);
-        return ApiResponse.success(OrderV1Dto.OrderResponse.from(orderInfo));
+        if (orderInfo.payResult()) {
+            return ApiResponse.success(OrderV1Dto.OrderResponse.from(orderInfo));
+        } else {
+            throw new CoreException(GlobalErrorType.INTERNAL_ERROR, "결제 PG 연결에 실패하였습니다.");
+        }
     }
 
     @Override

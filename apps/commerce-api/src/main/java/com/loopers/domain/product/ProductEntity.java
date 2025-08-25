@@ -109,4 +109,11 @@ public class ProductEntity extends BaseEntity implements Serializable {
     public void decreaseLikeCount() {
         this.productCount.decreaseLikeCount();
     }
+
+    public void increaseQuantity(Long quantity) {
+        this.quantity += quantity;
+        if (this.quantity > 0) {
+            this.status = ProductStatus.SALE;
+        }
+    }
 }
