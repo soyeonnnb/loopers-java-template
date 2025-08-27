@@ -6,10 +6,13 @@ import com.loopers.domain.order.OrderService;
 import com.loopers.domain.user.UserService;
 import com.loopers.infrastructure.payment.PgPaymentInfraV1Dto;
 import com.loopers.interfaces.api.payment.PaymentV1Dto;
+import com.loopers.interfaces.listener.payment.PaymentFailEvent;
+import com.loopers.interfaces.listener.payment.PaymentSuccessEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class PaymentService {
     private final PgPayService pgPayService;
     private final PaymentGateway paymentGateway;
     private final OrderService orderService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional(readOnly = true)
@@ -50,7 +54,7 @@ public class PaymentService {
         switch (paymentEntity.getMethod()) {
             case POINT -> {
                 userService.usePoint(userId, paymentEntity.getOrder().getTotalPrice());
-                paymentEntity.updateStatus(PaymentStatus.SUCCESS);
+                eventPublisher.publishEvent(new PaymentSuccessEvent(paymentId));
                 return true;
             }
             case CARD -> {
@@ -58,23 +62,13 @@ public class PaymentService {
                 if (response.isSuccess()) {
                     paymentEntity.updateTransactionKey(response.transactionKey());
                 } else {
-                    paymentEntity.getOrder().payFailed(response.reason());
+                    eventPublisher.publishEvent(new PaymentFailEvent(paymentId, response.reason()));
                 }
                 return response.isSuccess();
 
             }
         }
         return true;
-    }
-
-    @Transactional
-    public void pay(OrderEntity order) {
-        order.paySuccess();
-    }
-
-    @Transactional
-    public void fail(OrderEntity order, String reason) {
-        order.payFailed(reason);
     }
 
     @Transactional
@@ -87,9 +81,9 @@ public class PaymentService {
             if (!result.data().orderId().equals(order.getUuid())) {
                 log.warn("트랜젝션 번호와 주문 Uuid가 일치하지 않습니다. [orderId={}, orderUUID={}, transactionKey={}]", order.getId(), order.getUuid(), order.getPayment().getTransactionKey());
             } else if (result.data().status().equals(PaymentV1Dto.TransactionStatusResponse.SUCCESS)) {
-                pay(order);
+                eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId()));
             } else {
-                fail(order, result.data().reason());
+                eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), result.data().reason()));
             }
         } catch (CoreException e) {
             log.info("에러가 발생했습니다. 메세지: {}", e.getMessage());
@@ -101,5 +95,11 @@ public class PaymentService {
         PaymentEntity paymentEntity = paymentRepository.findById(paymentId).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "결제 정보가 없습니다."));
         orderService.rollbackOrder(paymentEntity.getOrder());
         paymentEntity.getOrder().payFailed(reason);
+    }
+
+    @Transactional
+    public void paymentSuccess(Long paymentId) {
+        PaymentEntity paymentEntity = paymentRepository.findById(paymentId).orElseThrow(() -> new CoreException(GlobalErrorType.NOT_FOUND, "결제 정보가 없습니다."));
+        paymentEntity.getOrder().paySuccess();
     }
 }

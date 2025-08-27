@@ -30,5 +30,12 @@ public class PaymentEventListener {
         paymentService.paymentFail(event.getPaymentId(), event.getReason());
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handlePaymentSuccess(PaymentFailEvent event) {
+        log.info("payment success event 발생: {}", event.getPaymentId());
+        paymentService.paymentSuccess(event.getPaymentId());
+    }
+
 
 }
