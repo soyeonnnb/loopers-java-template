@@ -53,9 +53,7 @@ public class UserService {
     @Transactional
     public void usePoint(Long userId, Long point) {
         UserEntity userEntity = userRepository.findByIdWithLock(userId).orElseThrow(() -> new CoreException(UserErrorType.USER_NOT_EXISTS));
-        System.out.println("before =====> " + userEntity.getId() + " " + userEntity.getPoint());
         userEntity.usePoint(point);
-        System.out.println("after =====> " + userEntity.getId() + " " + userEntity.getPoint());
     }
 
 }

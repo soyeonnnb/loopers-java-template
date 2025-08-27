@@ -13,6 +13,7 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.order.OrderV1Dto;
 import com.loopers.interfaces.listener.coupon.UserCouponUseEvent;
+import com.loopers.interfaces.listener.dataplatform.DataPlatformSendEvent;
 import com.loopers.interfaces.listener.payment.PaymentCreateEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -79,7 +80,7 @@ public class OrderFacade {
 
         // 7. 쿠폰 사용
         if (orderEntity.getUserCoupon() != null) {
-            eventPublisher.publishEvent(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice()));
+            eventPublisher.publishEvent(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice(), orderEntity.getId()));
         }
 
         // 8. 결제
@@ -90,6 +91,8 @@ public class OrderFacade {
                 orderEntity.getPayment().getMethod(),
                 orderEntity.getId()
         ));
+
+        eventPublisher.publishEvent(DataPlatformSendEvent.orderComplete(orderEntity.getId(), user.getId(), orderEntity.getUuid(), orderEntity.getTotalPrice()));
         return OrderInfo.from(orderEntity);
     }
 

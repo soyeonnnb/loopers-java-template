@@ -7,5 +7,7 @@ import lombok.Getter;
 @Getter
 public class PaymentFailEvent {
     private Long paymentId;
+    private Long orderId;
+    private Long userId;
     private String reason;
 }

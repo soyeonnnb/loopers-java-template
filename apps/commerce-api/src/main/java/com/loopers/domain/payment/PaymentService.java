@@ -54,7 +54,7 @@ public class PaymentService {
         switch (paymentEntity.getMethod()) {
             case POINT -> {
                 userService.usePoint(userId, paymentEntity.getOrder().getTotalPrice());
-                eventPublisher.publishEvent(new PaymentSuccessEvent(paymentId));
+                eventPublisher.publishEvent(new PaymentSuccessEvent(paymentId, orderId, userId, orderUuid, paymentEntity.getOrder().getTotalPrice(), paymentEntity.getMethod().name()));
                 return true;
             }
             case CARD -> {
@@ -62,7 +62,7 @@ public class PaymentService {
                 if (response.isSuccess()) {
                     paymentEntity.updateTransactionKey(response.transactionKey());
                 } else {
-                    eventPublisher.publishEvent(new PaymentFailEvent(paymentId, response.reason()));
+                    eventPublisher.publishEvent(new PaymentFailEvent(paymentId, orderId, userId, response.reason()));
                 }
                 return response.isSuccess();
 
@@ -81,9 +81,9 @@ public class PaymentService {
             if (!result.data().orderId().equals(order.getUuid())) {
                 log.warn("트랜젝션 번호와 주문 Uuid가 일치하지 않습니다. [orderId={}, orderUUID={}, transactionKey={}]", order.getId(), order.getUuid(), order.getPayment().getTransactionKey());
             } else if (result.data().status().equals(PaymentV1Dto.TransactionStatusResponse.SUCCESS)) {
-                eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId()));
+                eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), order.getUuid(), order.getTotalPrice(), order.getPayment().getMethod().name()));
             } else {
-                eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), result.data().reason()));
+                eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), result.data().reason()));
             }
         } catch (CoreException e) {
             log.info("에러가 발생했습니다. 메세지: {}", e.getMessage());

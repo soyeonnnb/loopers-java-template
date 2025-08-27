@@ -43,9 +43,9 @@ public class PaymentFacade {
         OrderEntity order = orderService.getOrderForPay(transactionKey, orderUUID);
 
         if (status.equals(PaymentStatus.SUCCESS)) {
-            eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId()));
+            eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), orderUUID, order.getTotalPrice(), order.getPayment().getMethod().name()));
         } else {
-            eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), reason));
+            eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), reason));
         }
     }
 

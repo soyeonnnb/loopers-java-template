@@ -9,4 +9,5 @@ public class UserCouponUseEvent {
     private final Long userCouponId;
     private final Long useBeforePrice;
     private final Long paymentId;
+    private final Long orderId;
 }

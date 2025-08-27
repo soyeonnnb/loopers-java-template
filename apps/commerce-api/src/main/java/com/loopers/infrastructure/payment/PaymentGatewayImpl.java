@@ -31,7 +31,7 @@ public class PaymentGatewayImpl implements PaymentGateway {
         // 유효성 검증
         validatePaymentRequest(userId, orderUUID, cardType, cardNo, amount);
 
-        String url = "http://localhost:8082/api/v1/payments";
+        String url = "http://localhost:8083/api/v1/payments";
         String callbackUrl = "http://localhost:8080/api/v1/payments/callback";
 
         HttpHeaders headers = new HttpHeaders();

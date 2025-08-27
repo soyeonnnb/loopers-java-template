@@ -17,7 +17,7 @@ public class CouponUseEventListener {
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleUseCoupon(UserCouponUseEvent event) {
         log.info("handleUseCoupon 발생");
-        userCouponService.useCoupon(event.getPaymentId(), event.getUserCouponId(), event.getUseBeforePrice());
+        userCouponService.useCoupon(event.getOrderId(), event.getPaymentId(), event.getUserCouponId(), event.getUseBeforePrice());
     }
 
 }
