@@ -119,7 +119,7 @@ class OrderServiceIntegrationTest {
                 // arrange
 
                 // act
-                OrderEntity orderEntity = orderService.order(userEntity, itemList, TOTAL_PRICE, null);
+                OrderEntity orderEntity = orderService.createOrder(userEntity, itemList, TOTAL_PRICE, null);
 
                 // assert
                 assertAll(
@@ -136,7 +136,7 @@ class OrderServiceIntegrationTest {
                 // arrange
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(null, itemList, TOTAL_PRICE, null));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(null, itemList, TOTAL_PRICE, null));
 
                 // assert
                 assertAll(
@@ -151,7 +151,7 @@ class OrderServiceIntegrationTest {
                 // arrange
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(userEntity, new ArrayList<>(), TOTAL_PRICE, null));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(userEntity, new ArrayList<>(), TOTAL_PRICE, null));
 
                 // assert
                 assertAll(
@@ -166,7 +166,7 @@ class OrderServiceIntegrationTest {
                 // arrange
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(userEntity, itemList, -1L, null));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(userEntity, itemList, -1L, null));
 
                 // assert
                 assertAll(

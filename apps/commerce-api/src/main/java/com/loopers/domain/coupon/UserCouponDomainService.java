@@ -13,6 +13,8 @@ import java.time.ZonedDateTime;
 @RequiredArgsConstructor
 public class UserCouponDomainService {
 
+    private final UserCouponRepository userCouponRepository;
+
     public void validateUseCoupon(UserEntity user, UserCouponEntity userCoupon, Long totalPrice) {
         // 0. 파라미터 확인
         if (user == null) {

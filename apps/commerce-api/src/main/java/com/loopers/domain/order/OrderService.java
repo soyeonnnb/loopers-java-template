@@ -26,7 +26,7 @@ public class OrderService {
     private final OrderDomainService orderDomainService;
 
     @Transactional
-    public OrderEntity order(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon) {
+    public OrderEntity createOrder(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon) {
         // 0. 파라미터 값 체크
         if (user == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -42,8 +42,7 @@ public class OrderService {
 
         // 2. 주문 생성
         OrderEntity orderEntity = orderDomainService.createOrder(user, itemList, totalPrice, userCoupon);
-
-        return orderRepository.save(orderEntity);
+        return orderEntity;
     }
 
 
@@ -116,5 +115,10 @@ public class OrderService {
     @Transactional
     public List<OrderEntity> getPendingOrderList(ZonedDateTime startAt, ZonedDateTime endAt) {
         return orderRepository.findOrdersByStatusAndCreatedAtBetweenWithCardPay(OrderStatus.PENDING, startAt, endAt);
+    }
+
+    @Transactional
+    public OrderEntity saveOrder(OrderEntity orderEntity) {
+        return orderRepository.save(orderEntity);
     }
 }

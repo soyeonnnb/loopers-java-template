@@ -9,10 +9,10 @@ import com.loopers.support.error.GlobalErrorType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -46,13 +46,13 @@ public class OrderEntity extends BaseEntity {
     private PaymentEntity payment;
 
     @Schema(name = "주문 UUID")
-    @UuidGenerator
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(36)")
     private String uuid;
 
     protected OrderEntity() {
 
     }
+
 
     public OrderEntity(UserEntity user, Long totalPrice, UserCouponEntity userCoupon) {
         if (user == null) {
@@ -72,6 +72,13 @@ public class OrderEntity extends BaseEntity {
         this.status = OrderStatus.PENDING;
     }
 
+    @PrePersist
+    private void generateUuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
+    }
+
     public void addPayment(PaymentEntity paymentEntity) {
         if (paymentEntity == null) {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "결제 방식이 null이 될 수 없습니다.");
@@ -87,11 +94,6 @@ public class OrderEntity extends BaseEntity {
         this.items.add(orderItem);
         orderItem.updateOrder(this);
     }
-
-    public void updateTransactionKey(String transactionKey) {
-        this.payment.updateTransactionKey(transactionKey);
-    }
-
 
     public void payFailed(String reason) {
         this.status = OrderStatus.FAILED;

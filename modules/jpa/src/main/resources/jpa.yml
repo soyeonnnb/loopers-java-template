@@ -58,8 +58,10 @@ spring:
 datasource:
   mysql-jpa:
     main:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: 50
+      minimum-idle: 20
+      connection-timeout: 10000
+      leak-detection-threshold: 60000
 
 ---
 spring.config.activate.on-profile: dev
@@ -74,7 +76,7 @@ datasource:
       jdbc-url: jdbc:mysql://localhost:13306/loopers
       username: application
       password: application
-      
+
 ---
 spring.config.activate.on-profile: qa
 
