@@ -40,6 +40,7 @@ public class LikeFacade {
         }
 
         LikeEntity likeEntity = likeService.like(optionalUserEntity.get(), optionalProductEntity.get());
+
         return LikeInfo.from(likeEntity, optionalUserEntity.get(), optionalProductEntity.get());
     }
 
