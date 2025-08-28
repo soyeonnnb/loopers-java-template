@@ -34,7 +34,7 @@ public class LikeFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
         }
 
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfoWithLock(productId);
+        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
         if (optionalProductEntity.isEmpty()) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
         }
@@ -55,7 +55,7 @@ public class LikeFacade {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
         }
 
-        Optional<ProductEntity> optionalProductEntity = productService.getProductInfoWithLock(productId);
+        Optional<ProductEntity> optionalProductEntity = productService.getProductInfo(productId);
         if (optionalProductEntity.isEmpty()) {
             throw new CoreException(GlobalErrorType.NOT_FOUND, "상품 정보가 없습니다.");
         }
