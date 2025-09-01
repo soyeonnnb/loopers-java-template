@@ -63,7 +63,15 @@ public class UserCouponEntity extends BaseEntity {
     }
 
     public void use(Long beforePrice) {
+        if (this.usedAt != null) {
+            throw new CoreException(GlobalErrorType.BAD_REQUEST, "이미 사용된 쿠폰입니다.");
+        }
         this.usedAt = ZonedDateTime.now();
         this.beforePrice = beforePrice;
+    }
+
+    public void rollback() {
+        this.usedAt = null;
+        this.beforePrice = null;
     }
 }

@@ -11,4 +11,5 @@ public interface UserRepository {
 
     Optional<UserEntity> findByLoginIdWithLock(String userId);
 
+    Optional<UserEntity> findByIdWithLock(Long userId);
 }

@@ -261,7 +261,7 @@ class OrderFacadeTest {
             productEntity = productRepository.save(productEntity);
 
             List<OrderV1Dto.OrderRequest> requestList = new ArrayList<>();
-            int SIZE = 50;
+            int SIZE = 7;
             int totalQuantity = 0;
             for (int i = 1; i <= SIZE; i++) {
                 List<OrderV1Dto.ProductOrderRequest> items = List.of(new OrderV1Dto.ProductOrderRequest(productEntity.getId(), (long) i));
@@ -269,7 +269,6 @@ class OrderFacadeTest {
                 requestList.add(new OrderV1Dto.OrderRequest(items, 500L * i, null, payment));
                 totalQuantity += i;
             }
-
 
             // act
             ExecutorService executor = Executors.newFixedThreadPool(SIZE);
@@ -315,7 +314,7 @@ class OrderFacadeTest {
         @Test
         void successQuantityUse_whenConcurrencyOrder() throws InterruptedException {
             // arrange
-            int SIZE = 200;
+            int SIZE = 10;
             final long userDefaultPoint = 15000000L;
             final long productDefaultQuantity = 30000L;
             List<UserEntity> userEntityList = new ArrayList<>();

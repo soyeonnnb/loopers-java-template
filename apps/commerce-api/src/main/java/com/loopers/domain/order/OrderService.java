@@ -1,9 +1,7 @@
 package com.loopers.domain.order;
 
 import com.loopers.application.order.OrderCommand;
-import com.loopers.application.payment.PaymentCommand;
 import com.loopers.domain.coupon.UserCouponEntity;
-import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
@@ -26,10 +24,9 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService;
-    private final PaymentService paymentService;
 
     @Transactional
-    public OrderEntity order(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon, PaymentCommand.Payment paymentCommand) {
+    public OrderEntity createOrder(UserEntity user, List<OrderCommand.OrderProduct> itemList, Long totalPrice, UserCouponEntity userCoupon) {
         // 0. 파라미터 값 체크
         if (user == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 정보가 없습니다.");
@@ -45,9 +42,7 @@ public class OrderService {
 
         // 2. 주문 생성
         OrderEntity orderEntity = orderDomainService.createOrder(user, itemList, totalPrice, userCoupon);
-        paymentService.addPaymentToOrder(orderEntity, paymentCommand);
-
-        return orderRepository.save(orderEntity);
+        return orderEntity;
     }
 
 
@@ -112,10 +107,18 @@ public class OrderService {
         for (OrderItemEntity orderItem : order.getItems()) {
             orderItem.getProduct().increaseQuantity(orderItem.getQuantity());
         }
+        if (order.getUserCoupon() != null) {
+            order.getUserCoupon().rollback();
+        }
     }
 
     @Transactional
     public List<OrderEntity> getPendingOrderList(ZonedDateTime startAt, ZonedDateTime endAt) {
         return orderRepository.findOrdersByStatusAndCreatedAtBetweenWithCardPay(OrderStatus.PENDING, startAt, endAt);
+    }
+
+    @Transactional
+    public OrderEntity saveOrder(OrderEntity orderEntity) {
+        return orderRepository.save(orderEntity);
     }
 }

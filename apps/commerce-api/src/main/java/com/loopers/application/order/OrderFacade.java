@@ -1,6 +1,5 @@
 package com.loopers.application.order;
 
-import com.loopers.application.payment.PaymentCommand;
 import com.loopers.domain.coupon.UserCouponDomainService;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.coupon.UserCouponService;
@@ -13,9 +12,13 @@ import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.order.OrderV1Dto;
+import com.loopers.interfaces.listener.coupon.UserCouponUseEvent;
+import com.loopers.interfaces.listener.dataplatform.DataPlatformSendEvent;
+import com.loopers.interfaces.listener.payment.PaymentCreateEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +38,12 @@ public class OrderFacade {
     private final OrderDomainService orderDomainService;
     private final UserCouponService userCouponService;
     private final PaymentService paymentService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
+//        OrderEntity orderEntity = orderService.order(userId, request);
+
         // 1. 사용자 정보 확인
         if (userId == null) {
             throw new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자 ID 정보가 없습니다.");
@@ -54,7 +60,6 @@ public class OrderFacade {
         UserEntity user = userService.getUserInfoWithLock(userId).orElseThrow(() -> new CoreException(GlobalErrorType.UNAUTHORIZED, "사용자를 찾을 수 없습니다."));
         Long totalPrice = orderDomainService.calculateTotalPrice(itemList);
 
-
         // 4. 쿠폰 확인
         UserCouponEntity userCoupon = null;
         if (request.couponId() != null) {
@@ -68,20 +73,27 @@ public class OrderFacade {
             throw new CoreException(GlobalErrorType.BAD_REQUEST, "상품 총 합계와 주문 금액이 일치하지 않습니다.");
         }
 
-        // 6. 쿠폰 사용
-        if (userCoupon != null) {
-            userCouponDomainService.useCoupon(userCoupon, calculatePrice);
+        // 6. 주문
+        OrderEntity orderEntity = orderService.createOrder(user, itemList, calculatePrice, userCoupon);
+        paymentService.addPaymentToOrder(orderEntity, request.payment().method(), request.payment().cardId());
+        orderEntity = orderService.saveOrder(orderEntity);
+
+        // 7. 쿠폰 사용
+        if (orderEntity.getUserCoupon() != null) {
+            eventPublisher.publishEvent(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice(), orderEntity.getId()));
         }
 
-        // 7. 결제 정보 확인
-        PaymentCommand.Payment paymentCommand = new PaymentCommand.Payment(request.payment().method(), request.totalPrice(), request.payment().cardId());
-
-        // 7. 주문
-        OrderEntity orderEntity = orderService.order(user, itemList, calculatePrice, userCoupon, paymentCommand);
-
         // 8. 결제
-        Boolean result = paymentService.payment(user, orderEntity);
-        return OrderInfo.from(orderEntity, result);
+        eventPublisher.publishEvent(new PaymentCreateEvent(
+                orderEntity.getUser().getId(),
+                orderEntity.getPayment().getId(),
+                orderEntity.getUuid(),
+                orderEntity.getPayment().getMethod(),
+                orderEntity.getId()
+        ));
+
+        eventPublisher.publishEvent(DataPlatformSendEvent.orderComplete(orderEntity.getId(), user.getId(), orderEntity.getUuid(), orderEntity.getTotalPrice()));
+        return OrderInfo.from(orderEntity);
     }
 
     public List<OrderInfo> getUserOrderInfoList(String userId, LocalDate startDate, LocalDate endDate, Integer page, Integer size) {

@@ -3,7 +3,6 @@ package com.loopers.domain.order;
 import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
-import com.loopers.application.payment.PaymentCommand;
 import com.loopers.domain.coupon.CouponEntity;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.UserCouponEntity;
@@ -118,10 +117,9 @@ class OrderServiceIntegrationTest {
             @Test
             void success_order() {
                 // arrange
-                PaymentCommand.Payment payment = new PaymentCommand.Payment("POINT", TOTAL_PRICE, null);
 
                 // act
-                OrderEntity orderEntity = orderService.order(userEntity, itemList, TOTAL_PRICE, null, payment);
+                OrderEntity orderEntity = orderService.createOrder(userEntity, itemList, TOTAL_PRICE, null);
 
                 // assert
                 assertAll(
@@ -136,10 +134,9 @@ class OrderServiceIntegrationTest {
             @Test
             void throws401Exception_whenUserIsNull() {
                 // arrange
-                PaymentCommand.Payment payment = new PaymentCommand.Payment("POINT", TOTAL_PRICE, null);
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(null, itemList, TOTAL_PRICE, null, payment));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(null, itemList, TOTAL_PRICE, null));
 
                 // assert
                 assertAll(
@@ -152,10 +149,9 @@ class OrderServiceIntegrationTest {
             @Test
             void throws400Exception_whenOrderProductListIsEmpty() {
                 // arrange
-                PaymentCommand.Payment payment = new PaymentCommand.Payment("POINT", TOTAL_PRICE, null);
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(userEntity, new ArrayList<>(), TOTAL_PRICE, null, payment));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(userEntity, new ArrayList<>(), TOTAL_PRICE, null));
 
                 // assert
                 assertAll(
@@ -168,10 +164,9 @@ class OrderServiceIntegrationTest {
             @Test
             void throws400Exception_whenOrderPriceIsLessThan0() {
                 // arrange
-                PaymentCommand.Payment payment = new PaymentCommand.Payment("POINT", TOTAL_PRICE, null);
 
                 // act
-                CoreException exception = assertThrows(CoreException.class, () -> orderService.order(userEntity, itemList, -1L, null, payment));
+                CoreException exception = assertThrows(CoreException.class, () -> orderService.createOrder(userEntity, itemList, -1L, null));
 
                 // assert
                 assertAll(

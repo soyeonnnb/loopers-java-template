@@ -5,6 +5,8 @@ import com.loopers.domain.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Component
 public class PaymentRepositoryImpl implements PaymentRepository {
@@ -13,5 +15,10 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public PaymentEntity save(PaymentEntity paymentEntity) {
         return paymentJpaRepository.save(paymentEntity);
+    }
+
+    @Override
+    public Optional<PaymentEntity> findById(Long paymentId) {
+        return paymentJpaRepository.findById(paymentId);
     }
 }
