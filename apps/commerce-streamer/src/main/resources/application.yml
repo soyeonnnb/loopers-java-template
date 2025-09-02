@@ -9,7 +9,8 @@ server:
     accept-count: 100 # 대기 큐 크기 (default : 100)
     keep-alive-timeout: 60s # 60s
   max-http-request-header-size: 8KB
-  port: 8080
+  port: 8081
+
 spring:
   main:
     web-application-type: servlet
@@ -21,20 +22,27 @@ spring:
     import:
       - jpa.yml
       - redis.yml
-      - circuit-breaker.yml
+      - kafka.yml
       - logging.yml
       - monitoring.yml
 
-springdoc:
-  use-fqn: true
-  swagger-ui:
-    path: /swagger-ui.html
+demo-kafka:
+  test:
+    topic-name: demo.internal.topic-v1
 
 ---
 spring:
   config:
     activate:
       on-profile: local, test
+
+
+server:
+  port: 8084
+
+management:
+  server:
+    port: 8085
 
 ---
 spring:
