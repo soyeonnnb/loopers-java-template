@@ -1,5 +1,6 @@
 package com.loopers.domain.like;
 
+import com.loopers.application.event.EventPublisher;
 import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.domain.user.UserEntity;
@@ -9,11 +10,11 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +24,8 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
     private final ProductRepository productRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
+
 
     @Transactional
     public LikeEntity like(UserEntity userEntity, ProductEntity productEntity) {
@@ -37,7 +39,7 @@ public class LikeService {
         LikeEntity likeEntity = optionalLikeEntity.orElse(new LikeEntity(userEntity, productEntity, false));
 
         if (!likeEntity.getIsLike()) {
-            eventPublisher.publishEvent(new LikeEvent(productEntity.getId(), userEntity.getId()));
+            eventPublisher.publish(new LikeEvent(productEntity.getId(), userEntity.getId(), LocalDateTime.now()));
         }
         likeEntity.like();
         return likeRepository.save(likeEntity);
@@ -65,7 +67,7 @@ public class LikeService {
         } else {
             LikeEntity likeEntity = optionalLikeEntity.get();
             if (likeEntity.getIsLike()) {
-                eventPublisher.publishEvent(new DisLikeEvent(productEntity.getId(), userEntity.getId()));
+                eventPublisher.publish(new DisLikeEvent(productEntity.getId(), userEntity.getId(), LocalDateTime.now()));
             }
             likeEntity.dislike();
             return likeRepository.save(likeEntity);

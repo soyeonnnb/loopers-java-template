@@ -18,13 +18,13 @@ public class LikeEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLike(LikeEvent event) {
-        log.info("좋아요 이벤트 처리: productId={}", event.productId());
-        likeService.increaseProductLikeCount(event.productId());
+        log.info("좋아요 이벤트 처리: productId={}", event.getAggregateId());
+        likeService.increaseProductLikeCount(event.getProductId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDisLike(DisLikeEvent event) {
-        log.info("좋아요 취소 이벤트 처리: productId={}", event.productId());
-        likeService.decreaseProductLikeCount(event.productId());
+        log.info("좋아요 취소 이벤트 처리: productId={}", event.getAggregateId());
+        likeService.decreaseProductLikeCount(event.getProductId());
     }
 }

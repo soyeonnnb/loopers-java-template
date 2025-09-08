@@ -1,5 +1,6 @@
 package com.loopers.domain.payment;
 
+import com.loopers.application.event.EventPublisher;
 import com.loopers.application.payment.PaymentGateway;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderService;
@@ -12,10 +13,10 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -29,7 +30,7 @@ public class PaymentService {
     private final PgPayService pgPayService;
     private final PaymentGateway paymentGateway;
     private final OrderService orderService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
 
     @Transactional(readOnly = true)
@@ -54,7 +55,7 @@ public class PaymentService {
         switch (paymentEntity.getMethod()) {
             case POINT -> {
                 userService.usePoint(userId, paymentEntity.getOrder().getTotalPrice());
-                eventPublisher.publishEvent(new PaymentSuccessEvent(paymentId, orderId, userId, orderUuid, paymentEntity.getOrder().getTotalPrice(), paymentEntity.getMethod().name()));
+                eventPublisher.publish(new PaymentSuccessEvent(paymentId, orderId, userId, orderUuid, paymentEntity.getOrder().getTotalPrice(), paymentEntity.getMethod().name(), LocalDateTime.now()));
                 return true;
             }
             case CARD -> {
@@ -62,7 +63,7 @@ public class PaymentService {
                 if (response.isSuccess()) {
                     paymentEntity.updateTransactionKey(response.transactionKey());
                 } else {
-                    eventPublisher.publishEvent(new PaymentFailEvent(paymentId, orderId, userId, response.reason()));
+                    eventPublisher.publish(new PaymentFailEvent(paymentId, orderId, userId, response.reason(), LocalDateTime.now()));
                 }
                 return response.isSuccess();
 
@@ -81,9 +82,9 @@ public class PaymentService {
             if (!result.data().orderId().equals(order.getUuid())) {
                 log.warn("트랜젝션 번호와 주문 Uuid가 일치하지 않습니다. [orderId={}, orderUUID={}, transactionKey={}]", order.getId(), order.getUuid(), order.getPayment().getTransactionKey());
             } else if (result.data().status().equals(PaymentV1Dto.TransactionStatusResponse.SUCCESS)) {
-                eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), order.getUuid(), order.getTotalPrice(), order.getPayment().getMethod().name()));
+                eventPublisher.publish(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), order.getUuid(), order.getTotalPrice(), order.getPayment().getMethod().name(), LocalDateTime.now()));
             } else {
-                eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), result.data().reason()));
+                eventPublisher.publish(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), result.data().reason(), LocalDateTime.now()));
             }
         } catch (CoreException e) {
             log.info("에러가 발생했습니다. 메세지: {}", e.getMessage());
