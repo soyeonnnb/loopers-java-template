@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -45,7 +46,7 @@ public class UserCouponService {
         try {
             userCoupon.use(calculatePrice);
         } catch (CoreException e) {
-            eventPublisher.publishEvent(new PaymentFailEvent(paymentId, orderId, userCoupon.getUser().getId(), "이미 사용된 쿠폰입니다."));
+            eventPublisher.publishEvent(new PaymentFailEvent(paymentId, orderId, userCoupon.getUser().getId(), "이미 사용된 쿠폰입니다.", LocalDateTime.now()));
         }
     }
 }

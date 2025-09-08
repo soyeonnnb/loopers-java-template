@@ -1,5 +1,6 @@
 package com.loopers.application.order;
 
+import com.loopers.application.event.EventPublisher;
 import com.loopers.domain.coupon.UserCouponDomainService;
 import com.loopers.domain.coupon.UserCouponEntity;
 import com.loopers.domain.coupon.UserCouponService;
@@ -13,17 +14,16 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.order.OrderV1Dto;
 import com.loopers.interfaces.listener.coupon.UserCouponUseEvent;
-import com.loopers.interfaces.listener.dataplatform.DataPlatformSendEvent;
 import com.loopers.interfaces.listener.payment.PaymentCreateEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class OrderFacade {
     private final OrderDomainService orderDomainService;
     private final UserCouponService userCouponService;
     private final PaymentService paymentService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public OrderInfo order(String userId, OrderV1Dto.OrderRequest request) {
@@ -80,19 +80,20 @@ public class OrderFacade {
 
         // 7. 쿠폰 사용
         if (orderEntity.getUserCoupon() != null) {
-            eventPublisher.publishEvent(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice(), orderEntity.getId()));
+            eventPublisher.publish(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice(), orderEntity.getId(), LocalDateTime.now()));
         }
 
         // 8. 결제
-        eventPublisher.publishEvent(new PaymentCreateEvent(
+        eventPublisher.publish(new PaymentCreateEvent(
                 orderEntity.getUser().getId(),
                 orderEntity.getPayment().getId(),
                 orderEntity.getUuid(),
-                orderEntity.getPayment().getMethod(),
-                orderEntity.getId()
+                orderEntity.getPayment().getMethod().name(),
+                orderEntity.getId(),
+                LocalDateTime.now()
         ));
 
-        eventPublisher.publishEvent(DataPlatformSendEvent.orderComplete(orderEntity.getId(), user.getId(), orderEntity.getUuid(), orderEntity.getTotalPrice()));
+//        eventPublisher.publish(DataPlatformSendEvent.orderComplete(orderEntity.getId(), user.getId(), orderEntity.getUuid(), orderEntity.getTotalPrice()));
         return OrderInfo.from(orderEntity);
     }
 

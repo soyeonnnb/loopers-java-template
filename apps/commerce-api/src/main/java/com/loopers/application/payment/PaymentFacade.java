@@ -1,5 +1,6 @@
 package com.loopers.application.payment;
 
+import com.loopers.application.event.EventPublisher;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderService;
 import com.loopers.domain.payment.PaymentMethod;
@@ -11,7 +12,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +26,7 @@ import java.util.List;
 public class PaymentFacade {
     private final OrderService orderService;
     private final PaymentService paymentService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public void paymentCallback(String transactionKey, String orderUUID, PaymentStatus status, String reason) {
@@ -43,9 +43,9 @@ public class PaymentFacade {
         OrderEntity order = orderService.getOrderForPay(transactionKey, orderUUID);
 
         if (status.equals(PaymentStatus.SUCCESS)) {
-            eventPublisher.publishEvent(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), orderUUID, order.getTotalPrice(), order.getPayment().getMethod().name()));
+            eventPublisher.publish(new PaymentSuccessEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), orderUUID, order.getTotalPrice(), order.getPayment().getMethod().name(), LocalDateTime.now()));
         } else {
-            eventPublisher.publishEvent(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), reason));
+            eventPublisher.publish(new PaymentFailEvent(order.getPayment().getId(), order.getId(), order.getUser().getId(), reason, LocalDateTime.now()));
         }
     }
 
