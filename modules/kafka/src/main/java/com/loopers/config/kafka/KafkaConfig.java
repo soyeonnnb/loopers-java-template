@@ -1,7 +1,10 @@
-package com.loopers.confg.kafka;
+package com.loopers.config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +14,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.converter.ByteArrayJsonMessageConverter;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +35,12 @@ public class KafkaConfig {
     @Bean
     public ProducerFactory<Object, Object> producerFactory(KafkaProperties kafkaProperties) {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
+
+        // 명시적으로 JsonSerializer 설정
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:19092");
+
         return new DefaultKafkaProducerFactory<>(props);
     }
 
@@ -80,4 +90,27 @@ public class KafkaConfig {
         // MessageConverter 설정하지 않음
         return factory;
     }
+
+    @Bean("dlqStringListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> dlqStringListenerContainerFactory(
+            KafkaProperties kafkaProperties
+    ) {
+        Map<String, Object> consumerConfig = new HashMap<>(kafkaProperties.buildConsumerProperties());
+
+        // DLQ는 String Deserializer 사용
+        consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+        DefaultKafkaConsumerFactory<String, String> consumerFactory =
+                new DefaultKafkaConsumerFactory<>(consumerConfig);
+
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+        return factory;
+    }
+
+
 }

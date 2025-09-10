@@ -39,6 +39,7 @@ public class MetricsConsumer {
     private final ObjectMapper objectMapper;
     private final com.loopers.support.DlqPublisher dlqPublisher;
 
+
     @KafkaListener(
             topics = {KafkaTopics.CATALOG_EVENTS, KafkaTopics.ORDER_EVENTS},
             groupId = "metrics-batch-group",
@@ -46,7 +47,7 @@ public class MetricsConsumer {
     )
     @Transactional
     public void consumeBatch(
-            List<String> messages,
+            List<KafkaEventMessage<?>> messages,  // String -> KafkaEventMessage로 변경
             @Header(KafkaHeaders.RECEIVED_TOPIC) List<String> topics,
             Acknowledgment ack
     ) {
@@ -56,25 +57,18 @@ public class MetricsConsumer {
         int failedCount = 0;
 
         for (int i = 0; i < messages.size(); i++) {
-            String messageJson = messages.get(i);
-            String topic = topics.get(i);  // 같은 인덱스의 토픽
+            KafkaEventMessage<?> message = messages.get(i);  // 직접 사용
+            String topic = topics.get(i);
 
-            if (messageJson == null || messageJson.isEmpty()) {
+            if (message == null) {
                 log.warn("빈 메시지 스킵");
                 continue;
             }
 
             try {
-                // JSON 파싱
-                KafkaEventMessage<?> message = objectMapper.readValue(
-                        messageJson,
-                        objectMapper.getTypeFactory().constructParametricType(
-                                KafkaEventMessage.class,
-                                Object.class
-                        )
-                );
-
                 String eventId = message.getEventId();
+
+                // JSON 파싱 단계 제거 (이미 역직렬화됨)
 
                 // 1. 멱등성 체크
                 if (eventHandledRepository.existsByEventIdAndConsumerName(eventId, CONSUMER_NAME)) {
@@ -125,13 +119,13 @@ public class MetricsConsumer {
                 log.error("개별 메시지 처리 실패", e);
                 failedCount++;
 
-                // DLQ로 전송
-                dlqPublisher.sendToDlq(
-                        topic,
-                        messageJson,
-                        CONSUMER_NAME,
-                        e.getMessage()
-                );
+                // DLQ로 전송 - JSON 직렬화 필요
+                try {
+                    String messageJson = objectMapper.writeValueAsString(message);
+                    dlqPublisher.sendToDlq(topic, messageJson, CONSUMER_NAME, e.getMessage());
+                } catch (Exception jsonError) {
+                    log.error("DLQ 전송 중 JSON 변환 실패", jsonError);
+                }
             }
         }
 
@@ -139,6 +133,108 @@ public class MetricsConsumer {
         ack.acknowledge();
         log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
     }
+
+
+//    @KafkaListener(
+//            topics = {KafkaTopics.CATALOG_EVENTS, KafkaTopics.ORDER_EVENTS},
+//            groupId = "metrics-batch-group",
+//            containerFactory = "BATCH_LISTENER_DEFAULT"
+//    )
+//    @Transactional
+//    public void consumeBatch(
+//            List<String> messages,
+//            @Header(KafkaHeaders.RECEIVED_TOPIC) List<String> topics,
+//            Acknowledgment ack
+//    ) {
+//        log.info("배치 처리 시작 - {} 건", messages.size());
+//
+//        int processedCount = 0;
+//        int failedCount = 0;
+//
+//        for (int i = 0; i < messages.size(); i++) {
+//            String messageJson = messages.get(i);
+//            String topic = topics.get(i);  // 같은 인덱스의 토픽
+//
+//            if (messageJson == null || messageJson.isEmpty()) {
+//                log.warn("빈 메시지 스킵");
+//                continue;
+//            }
+//
+//            try {
+//                // JSON 파싱
+//                KafkaEventMessage<?> message = objectMapper.readValue(
+//                        messageJson,
+//                        objectMapper.getTypeFactory().constructParametricType(
+//                                KafkaEventMessage.class,
+//                                Object.class
+//                        )
+//                );
+//
+//                String eventId = message.getEventId();
+//
+//                // 1. 멱등성 체크
+//                if (eventHandledRepository.existsByEventIdAndConsumerName(eventId, CONSUMER_NAME)) {
+//                    log.debug("이미 처리된 이벤트 스킵 - eventId: {}", eventId);
+//                    continue;
+//                }
+//
+//                // 2. Version 체크
+//                Long eventVersion = message.getVersion() != null
+//                        ? message.getVersion().longValue()
+//                        : System.currentTimeMillis() / 1000;
+//
+//                Optional<EventHandled> latestProcessed = eventHandledRepository
+//                        .findLatestVersion(message.getAggregateId(), CONSUMER_NAME);
+//
+//                if (latestProcessed.isPresent() &&
+//                        latestProcessed.get().getEventVersion() >= eventVersion) {
+//                    log.debug("구 버전 이벤트 스킵 - eventId: {}", eventId);
+//                    continue;
+//                }
+//
+//                // 3. 이벤트 처리
+//                switch (message.getEventType()) {
+//                    case EventTypes.LIKE_ADDED -> handleLikeAdded(message);
+//                    case EventTypes.LIKE_REMOVED -> handleLikeRemoved(message);
+//                    case EventTypes.ORDER_CREATED -> handleOrderCreated(message);
+//                    case EventTypes.ORDER_CONFIRMED -> handleOrderConfirmed(message);
+//                    case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
+//                    case EventTypes.PAYMENT_COMPLETED -> handlePaymentCompleted(message);
+//                    case EventTypes.PAYMENT_FAILED -> handlePaymentFailed(message);
+//                    default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
+//                }
+//
+//                // 4. 처리 완료 기록
+//                eventHandledRepository.save(
+//                        EventHandled.create(
+//                                eventId,
+//                                CONSUMER_NAME,
+//                                message.getEventType(),
+//                                message.getAggregateId(),
+//                                eventVersion
+//                        )
+//                );
+//
+//                processedCount++;
+//
+//            } catch (Exception e) {
+//                log.error("개별 메시지 처리 실패", e);
+//                failedCount++;
+//
+//                // DLQ로 전송
+//                dlqPublisher.sendToDlq(
+//                        topic,
+//                        messageJson,
+//                        CONSUMER_NAME,
+//                        e.getMessage()
+//                );
+//            }
+//        }
+//
+//        // 5. 배치 전체 ACK
+//        ack.acknowledge();
+//        log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
+//    }
 
     /**
      * 좋아요 추가 처리

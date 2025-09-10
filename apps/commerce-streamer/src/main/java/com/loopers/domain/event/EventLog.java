@@ -73,6 +73,7 @@ public class EventLog {
                 .offsetValue(offsetValue)
                 .payload(payload)
                 .eventTimestamp(eventTimestamp)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }
