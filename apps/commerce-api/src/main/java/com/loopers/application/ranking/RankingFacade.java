@@ -37,16 +37,14 @@ public class RankingFacade {
         List<ProductEntity> productEntityList = productService.getProductList(productIdList);
         Optional<UserEntity> optionalUserEntity = userService.getUserInfo(userId);
 
+        List<ProductInfo> productInfoList = new ArrayList<>();
         if (optionalUserEntity.isEmpty()) {
-            List<ProductInfo> productInfoList = new ArrayList<>();
             for (ProductEntity product : productEntityList) {
                 Long rank = rankingService.getRank(date, product.getId());
                 Double score = rankingService.getScore(date, product.getId());
                 productInfoList.add(ProductInfo.from(product, false, rank, score));
             }
-            return productInfoList;
         } else {
-            List<ProductInfo> productInfoList = new ArrayList<>();
             for (ProductEntity product : productEntityList) {
                 boolean isLike = false;
                 Optional<LikeEntity> optionalLikeEntity = likeService.getUserLikeProduct(optionalUserEntity.get().getId(), product.getId());
@@ -55,7 +53,8 @@ public class RankingFacade {
                 Double score = rankingService.getScore(date, product.getId());
                 productInfoList.add(ProductInfo.from(product, isLike, rank, score));
             }
-            return productInfoList;
         }
+        productInfoList = productInfoList.stream().sorted((o1, o2) -> o1.rank().compareTo(o2.rank())).toList();
+        return productInfoList;
     }
 }
