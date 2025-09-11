@@ -93,4 +93,9 @@ public class ProductService {
         }
         return productEntity;
     }
+
+    @Transactional
+    public List<ProductEntity> getProductList(List<Long> productIdList) {
+        return productRepository.findAllByIdIn(productIdList);
+    }
 }

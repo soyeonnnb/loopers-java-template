@@ -5,6 +5,7 @@ import com.loopers.domain.event.EventHandled;
 import com.loopers.domain.event.EventHandledRepository;
 import com.loopers.domain.metrics.ProductMetrics;
 import com.loopers.domain.metrics.ProductMetricsRepository;
+import com.loopers.domain.ranking.RankingService;
 import com.loopers.kafka.EventTypes;
 import com.loopers.kafka.KafkaTopics;
 import com.loopers.kafka.message.KafkaEventMessage;
@@ -39,6 +40,7 @@ public class MetricsConsumer {
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
     private final com.loopers.support.DlqPublisher dlqPublisher;
+    private final RankingService rankingService;
 
 
     @KafkaListener(
@@ -96,14 +98,26 @@ public class MetricsConsumer {
 
                 // 3. 이벤트 처리
                 switch (message.getEventType()) {
-                    case "LikeEvent" -> handleLikeAdded(message);
-                    case "DisLikeEvent" -> handleLikeRemoved(message);
+                    case "LikeEvent" -> {
+                        handleLikeAdded(message);
+                        rankingService.addLikeScore(message);
+                    }
+                    case "DisLikeEvent" -> {
+                        handleLikeRemoved(message);
+                        rankingService.removeLikeScore(message);
+                    }
                     case "OrderCreatedEvent" -> handleOrderCreated(message);
-                    case "OrderCompletedEvent" -> handleOrderConfirmed(message);
+                    case "OrderCompletedEvent" -> {
+                        handleOrderConfirmed(message);
+                        rankingService.addOrderScore(message);
+                    }
                     case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
                     case "PaymentSuccessEvent" -> handlePaymentCompleted(message);
                     case "PaymentFailEvent" -> handlePaymentFailed(message);
-                    case "ProductViewEvent" -> handleProductView(message);
+                    case "ProductViewEvent" -> {
+                        handleProductView(message);
+                        rankingService.addViewScore(message);
+                    }
                     default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
                 }
 
