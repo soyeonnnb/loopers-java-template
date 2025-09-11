@@ -51,11 +51,19 @@ public class ProductMetrics {
     @Builder.Default
     private Long salesQuantity = 0L;
 
+    @Column(name = "view_count", nullable = false)
+    @Builder.Default
+    private Long viewCount = 0L;
+
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     // 비즈니스 메서드
+    public void view() {
+        this.viewCount++;
+    }
+
     public void addLike() {
         this.likeCount++;
     }

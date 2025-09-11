@@ -1,22 +1,17 @@
-package com.loopers.interfaces.listener.order;
+package com.loopers.interfaces.listener.product;
 
 import com.loopers.application.event.Event;
-import com.loopers.kafka.message.payload.OrderEventPayload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @AllArgsConstructor
 @Getter
-public class OrderCompletedEvent implements Event {
+public class ProductViewEvent implements Event {
 
-    private Long orderId;
+    private Long productId;
     private String userId;
-    private String orderUuid;
-    private Long totalAmount;
-    private List<OrderEventPayload.OrderItem> orderItems;
     private LocalDateTime createdAt;
 
     @Override
@@ -26,6 +21,6 @@ public class OrderCompletedEvent implements Event {
 
     @Override
     public String getAggregateId() {
-        return String.valueOf(orderId);
+        return String.valueOf(productId);
     }
 }

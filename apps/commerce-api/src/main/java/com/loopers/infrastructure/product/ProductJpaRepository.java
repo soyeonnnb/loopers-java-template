@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long> {
@@ -18,4 +19,8 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     @EntityGraph(attributePaths = {"productCount", "brand"})
     @Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
     Optional<ProductEntity> getProductInfoWithLock(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"productCount", "brand"})
+    @Query("SELECT p FROM ProductEntity p WHERE p.id in :list")
+    List<ProductEntity> findAllByIdIn(@Param("list") List<Long> productIdList);
 }

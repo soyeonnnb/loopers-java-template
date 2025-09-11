@@ -5,6 +5,7 @@ import com.loopers.domain.event.EventHandled;
 import com.loopers.domain.event.EventHandledRepository;
 import com.loopers.domain.metrics.ProductMetrics;
 import com.loopers.domain.metrics.ProductMetricsRepository;
+import com.loopers.domain.ranking.RankingService;
 import com.loopers.kafka.EventTypes;
 import com.loopers.kafka.KafkaTopics;
 import com.loopers.kafka.message.KafkaEventMessage;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +40,8 @@ public class MetricsConsumer {
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
     private final com.loopers.support.DlqPublisher dlqPublisher;
+    private final RankingService rankingService;
+
 
     @KafkaListener(
             topics = {KafkaTopics.CATALOG_EVENTS, KafkaTopics.ORDER_EVENTS},
@@ -46,7 +50,7 @@ public class MetricsConsumer {
     )
     @Transactional
     public void consumeBatch(
-            List<String> messages,
+            List<KafkaEventMessage<?>> messages,  // String -> KafkaEventMessage로 변경
             @Header(KafkaHeaders.RECEIVED_TOPIC) List<String> topics,
             Acknowledgment ack
     ) {
@@ -56,25 +60,18 @@ public class MetricsConsumer {
         int failedCount = 0;
 
         for (int i = 0; i < messages.size(); i++) {
-            String messageJson = messages.get(i);
-            String topic = topics.get(i);  // 같은 인덱스의 토픽
+            KafkaEventMessage<?> message = messages.get(i);  // 직접 사용
+            String topic = topics.get(i);
 
-            if (messageJson == null || messageJson.isEmpty()) {
+            if (message == null) {
                 log.warn("빈 메시지 스킵");
                 continue;
             }
 
             try {
-                // JSON 파싱
-                KafkaEventMessage<?> message = objectMapper.readValue(
-                        messageJson,
-                        objectMapper.getTypeFactory().constructParametricType(
-                                KafkaEventMessage.class,
-                                Object.class
-                        )
-                );
-
                 String eventId = message.getEventId();
+
+                // JSON 파싱 단계 제거 (이미 역직렬화됨)
 
                 // 1. 멱등성 체크
                 if (eventHandledRepository.existsByEventIdAndConsumerName(eventId, CONSUMER_NAME)) {
@@ -96,15 +93,31 @@ public class MetricsConsumer {
                     continue;
                 }
 
+
+                log.info("이벤트 타입:   {}", message.getEventType());
+
                 // 3. 이벤트 처리
                 switch (message.getEventType()) {
-                    case EventTypes.LIKE_ADDED -> handleLikeAdded(message);
-                    case EventTypes.LIKE_REMOVED -> handleLikeRemoved(message);
-                    case EventTypes.ORDER_CREATED -> handleOrderCreated(message);
-                    case EventTypes.ORDER_CONFIRMED -> handleOrderConfirmed(message);
+                    case "LikeEvent" -> {
+                        handleLikeAdded(message);
+                        rankingService.addLikeScore(message);
+                    }
+                    case "DisLikeEvent" -> {
+                        handleLikeRemoved(message);
+                        rankingService.removeLikeScore(message);
+                    }
+                    case "OrderCreatedEvent" -> handleOrderCreated(message);
+                    case "OrderCompletedEvent" -> {
+                        handleOrderConfirmed(message);
+                        rankingService.addOrderScore(message);
+                    }
                     case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
-                    case EventTypes.PAYMENT_COMPLETED -> handlePaymentCompleted(message);
-                    case EventTypes.PAYMENT_FAILED -> handlePaymentFailed(message);
+                    case "PaymentSuccessEvent" -> handlePaymentCompleted(message);
+                    case "PaymentFailEvent" -> handlePaymentFailed(message);
+                    case "ProductViewEvent" -> {
+                        handleProductView(message);
+                        rankingService.addViewScore(message);
+                    }
                     default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
                 }
 
@@ -125,19 +138,47 @@ public class MetricsConsumer {
                 log.error("개별 메시지 처리 실패", e);
                 failedCount++;
 
-                // DLQ로 전송
-                dlqPublisher.sendToDlq(
-                        topic,
-                        messageJson,
-                        CONSUMER_NAME,
-                        e.getMessage()
-                );
+                // DLQ로 전송 - JSON 직렬화 필요
+                try {
+                    String messageJson = objectMapper.writeValueAsString(message);
+                    dlqPublisher.sendToDlq(topic, messageJson, CONSUMER_NAME, e.getMessage());
+                } catch (Exception jsonError) {
+                    log.error("DLQ 전송 중 JSON 변환 실패", jsonError);
+                }
             }
         }
 
         // 5. 배치 전체 ACK
         ack.acknowledge();
         log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
+    }
+
+    private void handleProductView(KafkaEventMessage<?> message) {
+        CatalogEventPayload.View payload =
+                objectMapper.convertValue(message.getPayload(), CatalogEventPayload.View.class);
+
+        Long productId = payload.getProductId();
+        LocalDate today = LocalDate.now();
+
+        // 오늘 날짜의 메트릭 조회 or 생성
+        ProductMetrics metrics = productMetricsRepository
+                .findByProductIdAndMetricDate(productId, today)
+                .orElse(ProductMetrics.builder()
+                        .productId(productId)
+                        .metricDate(today)
+                        .likeCount(0L)
+                        .orderCount(0L)
+                        .salesQuantity(0L)
+                        .viewCount(0L)
+                        .updatedAt(LocalDateTime.now())
+                        .build());
+
+        // 조회 수 증가
+        metrics.view();
+
+        productMetricsRepository.save(metrics);
+        log.info("좋아요 메트릭 업데이트 - productId: {}, viewCount: {}",
+                productId, metrics.getViewCount());
     }
 
     /**
@@ -159,6 +200,8 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .viewCount(0L)
+                        .updatedAt(LocalDateTime.now())
                         .build());
 
         // 좋아요 수 증가
@@ -187,6 +230,8 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .viewCount(0L)
+                        .updatedAt(LocalDateTime.now())
                         .build());
 
         metrics.removeLike();
@@ -200,10 +245,19 @@ public class MetricsConsumer {
      * 주문 생성 처리
      */
     private void handleOrderCreated(KafkaEventMessage<?> message) {
+        log.info("주문 메트릭 처리 - aggregateId: {}", message.getAggregateId());
+    }
+
+    /**
+     * 주문 확정 처리
+     */
+    private void handleOrderConfirmed(KafkaEventMessage<?> message) {
+
         OrderEventPayload.OrderCreated payload =
                 objectMapper.convertValue(message.getPayload(), OrderEventPayload.OrderCreated.class);
 
         LocalDate today = LocalDate.now();
+        log.info("주문 생성 처리");
 
         // 주문의 각 상품별로 처리
         for (OrderEventPayload.OrderItem item : payload.getOrderItems()) {
@@ -217,6 +271,8 @@ public class MetricsConsumer {
                             .likeCount(0L)
                             .orderCount(0L)
                             .salesQuantity(0L)
+                            .viewCount(0L)
+                            .updatedAt(LocalDateTime.now())
                             .build());
 
             // 주문 수와 판매량 증가
@@ -226,12 +282,6 @@ public class MetricsConsumer {
             log.info("주문 메트릭 업데이트 - productId: {}, orderCount: {}, salesQty: {}",
                     productId, metrics.getOrderCount(), metrics.getSalesQuantity());
         }
-    }
-
-    /**
-     * 주문 확정 처리
-     */
-    private void handleOrderConfirmed(KafkaEventMessage<?> message) {
         log.info("주문 확정 이벤트 처리 - aggregateId: {}", message.getAggregateId());
     }
 

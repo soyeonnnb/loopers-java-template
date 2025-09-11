@@ -68,6 +68,7 @@ public class EventHandled {
                 .aggregateId(aggregateId)
                 .eventVersion(eventVersion)
                 .processedAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }
