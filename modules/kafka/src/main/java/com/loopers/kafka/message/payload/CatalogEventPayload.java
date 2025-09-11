@@ -18,6 +18,20 @@ public class CatalogEventPayload {
     }
 
     /**
+     * 상품 조회 이벤트 페이로드
+     */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class View {
+        private Long productId;
+        private String userId;
+        private LocalDateTime createdAt;
+    }
+
+
+    /**
      * 좋아요 추가 이벤트 페이로드
      */
     @Getter

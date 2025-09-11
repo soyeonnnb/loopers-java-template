@@ -103,6 +103,7 @@ public class MetricsConsumer {
                     case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
                     case "PaymentSuccessEvent" -> handlePaymentCompleted(message);
                     case "PaymentFailEvent" -> handlePaymentFailed(message);
+                    case "ProductViewEvent" -> handleProductView(message);
                     default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
                 }
 
@@ -138,6 +139,34 @@ public class MetricsConsumer {
         log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
     }
 
+    private void handleProductView(KafkaEventMessage<?> message) {
+        CatalogEventPayload.View payload =
+                objectMapper.convertValue(message.getPayload(), CatalogEventPayload.View.class);
+
+        Long productId = payload.getProductId();
+        LocalDate today = LocalDate.now();
+
+        // 오늘 날짜의 메트릭 조회 or 생성
+        ProductMetrics metrics = productMetricsRepository
+                .findByProductIdAndMetricDate(productId, today)
+                .orElse(ProductMetrics.builder()
+                        .productId(productId)
+                        .metricDate(today)
+                        .likeCount(0L)
+                        .orderCount(0L)
+                        .salesQuantity(0L)
+                        .viewCount(0L)
+                        .updatedAt(LocalDateTime.now())
+                        .build());
+
+        // 조회 수 증가
+        metrics.view();
+
+        productMetricsRepository.save(metrics);
+        log.info("좋아요 메트릭 업데이트 - productId: {}, viewCount: {}",
+                productId, metrics.getViewCount());
+    }
+
     /**
      * 좋아요 추가 처리
      */
@@ -157,6 +186,7 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .viewCount(0L)
                         .updatedAt(LocalDateTime.now())
                         .build());
 
@@ -186,6 +216,7 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .viewCount(0L)
                         .updatedAt(LocalDateTime.now())
                         .build());
 
@@ -226,6 +257,7 @@ public class MetricsConsumer {
                             .likeCount(0L)
                             .orderCount(0L)
                             .salesQuantity(0L)
+                            .viewCount(0L)
                             .updatedAt(LocalDateTime.now())
                             .build());
 
