@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,15 +91,18 @@ public class MetricsConsumer {
                     continue;
                 }
 
+
+                log.info("이벤트 타입:   {}", message.getEventType());
+
                 // 3. 이벤트 처리
                 switch (message.getEventType()) {
-                    case EventTypes.LIKE_ADDED -> handleLikeAdded(message);
-                    case EventTypes.LIKE_REMOVED -> handleLikeRemoved(message);
-                    case EventTypes.ORDER_CREATED -> handleOrderCreated(message);
-                    case EventTypes.ORDER_CONFIRMED -> handleOrderConfirmed(message);
+                    case "LikeEvent" -> handleLikeAdded(message);
+                    case "DisLikeEvent" -> handleLikeRemoved(message);
+                    case "OrderCreatedEvent" -> handleOrderCreated(message);
+                    case "OrderCompletedEvent" -> handleOrderConfirmed(message);
                     case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
-                    case EventTypes.PAYMENT_COMPLETED -> handlePaymentCompleted(message);
-                    case EventTypes.PAYMENT_FAILED -> handlePaymentFailed(message);
+                    case "PaymentSuccessEvent" -> handlePaymentCompleted(message);
+                    case "PaymentFailEvent" -> handlePaymentFailed(message);
                     default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
                 }
 
@@ -134,108 +138,6 @@ public class MetricsConsumer {
         log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
     }
 
-
-//    @KafkaListener(
-//            topics = {KafkaTopics.CATALOG_EVENTS, KafkaTopics.ORDER_EVENTS},
-//            groupId = "metrics-batch-group",
-//            containerFactory = "BATCH_LISTENER_DEFAULT"
-//    )
-//    @Transactional
-//    public void consumeBatch(
-//            List<String> messages,
-//            @Header(KafkaHeaders.RECEIVED_TOPIC) List<String> topics,
-//            Acknowledgment ack
-//    ) {
-//        log.info("배치 처리 시작 - {} 건", messages.size());
-//
-//        int processedCount = 0;
-//        int failedCount = 0;
-//
-//        for (int i = 0; i < messages.size(); i++) {
-//            String messageJson = messages.get(i);
-//            String topic = topics.get(i);  // 같은 인덱스의 토픽
-//
-//            if (messageJson == null || messageJson.isEmpty()) {
-//                log.warn("빈 메시지 스킵");
-//                continue;
-//            }
-//
-//            try {
-//                // JSON 파싱
-//                KafkaEventMessage<?> message = objectMapper.readValue(
-//                        messageJson,
-//                        objectMapper.getTypeFactory().constructParametricType(
-//                                KafkaEventMessage.class,
-//                                Object.class
-//                        )
-//                );
-//
-//                String eventId = message.getEventId();
-//
-//                // 1. 멱등성 체크
-//                if (eventHandledRepository.existsByEventIdAndConsumerName(eventId, CONSUMER_NAME)) {
-//                    log.debug("이미 처리된 이벤트 스킵 - eventId: {}", eventId);
-//                    continue;
-//                }
-//
-//                // 2. Version 체크
-//                Long eventVersion = message.getVersion() != null
-//                        ? message.getVersion().longValue()
-//                        : System.currentTimeMillis() / 1000;
-//
-//                Optional<EventHandled> latestProcessed = eventHandledRepository
-//                        .findLatestVersion(message.getAggregateId(), CONSUMER_NAME);
-//
-//                if (latestProcessed.isPresent() &&
-//                        latestProcessed.get().getEventVersion() >= eventVersion) {
-//                    log.debug("구 버전 이벤트 스킵 - eventId: {}", eventId);
-//                    continue;
-//                }
-//
-//                // 3. 이벤트 처리
-//                switch (message.getEventType()) {
-//                    case EventTypes.LIKE_ADDED -> handleLikeAdded(message);
-//                    case EventTypes.LIKE_REMOVED -> handleLikeRemoved(message);
-//                    case EventTypes.ORDER_CREATED -> handleOrderCreated(message);
-//                    case EventTypes.ORDER_CONFIRMED -> handleOrderConfirmed(message);
-//                    case EventTypes.ORDER_CANCELLED -> handleOrderCancelled(message);
-//                    case EventTypes.PAYMENT_COMPLETED -> handlePaymentCompleted(message);
-//                    case EventTypes.PAYMENT_FAILED -> handlePaymentFailed(message);
-//                    default -> log.debug("메트릭 처리 대상 아님 - type: {}", message.getEventType());
-//                }
-//
-//                // 4. 처리 완료 기록
-//                eventHandledRepository.save(
-//                        EventHandled.create(
-//                                eventId,
-//                                CONSUMER_NAME,
-//                                message.getEventType(),
-//                                message.getAggregateId(),
-//                                eventVersion
-//                        )
-//                );
-//
-//                processedCount++;
-//
-//            } catch (Exception e) {
-//                log.error("개별 메시지 처리 실패", e);
-//                failedCount++;
-//
-//                // DLQ로 전송
-//                dlqPublisher.sendToDlq(
-//                        topic,
-//                        messageJson,
-//                        CONSUMER_NAME,
-//                        e.getMessage()
-//                );
-//            }
-//        }
-//
-//        // 5. 배치 전체 ACK
-//        ack.acknowledge();
-//        log.info("배치 처리 완료 - 처리: {}/{} 건", processedCount, messages.size());
-//    }
-
     /**
      * 좋아요 추가 처리
      */
@@ -255,6 +157,7 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .updatedAt(LocalDateTime.now())
                         .build());
 
         // 좋아요 수 증가
@@ -283,6 +186,7 @@ public class MetricsConsumer {
                         .likeCount(0L)
                         .orderCount(0L)
                         .salesQuantity(0L)
+                        .updatedAt(LocalDateTime.now())
                         .build());
 
         metrics.removeLike();
@@ -296,10 +200,19 @@ public class MetricsConsumer {
      * 주문 생성 처리
      */
     private void handleOrderCreated(KafkaEventMessage<?> message) {
+        log.info("주문 메트릭 처리 - aggregateId: {}", message.getAggregateId());
+    }
+
+    /**
+     * 주문 확정 처리
+     */
+    private void handleOrderConfirmed(KafkaEventMessage<?> message) {
+
         OrderEventPayload.OrderCreated payload =
                 objectMapper.convertValue(message.getPayload(), OrderEventPayload.OrderCreated.class);
 
         LocalDate today = LocalDate.now();
+        log.info("주문 생성 처리");
 
         // 주문의 각 상품별로 처리
         for (OrderEventPayload.OrderItem item : payload.getOrderItems()) {
@@ -313,6 +226,7 @@ public class MetricsConsumer {
                             .likeCount(0L)
                             .orderCount(0L)
                             .salesQuantity(0L)
+                            .updatedAt(LocalDateTime.now())
                             .build());
 
             // 주문 수와 판매량 증가
@@ -322,12 +236,6 @@ public class MetricsConsumer {
             log.info("주문 메트릭 업데이트 - productId: {}, orderCount: {}, salesQty: {}",
                     productId, metrics.getOrderCount(), metrics.getSalesQuantity());
         }
-    }
-
-    /**
-     * 주문 확정 처리
-     */
-    private void handleOrderConfirmed(KafkaEventMessage<?> message) {
         log.info("주문 확정 이벤트 처리 - aggregateId: {}", message.getAggregateId());
     }
 

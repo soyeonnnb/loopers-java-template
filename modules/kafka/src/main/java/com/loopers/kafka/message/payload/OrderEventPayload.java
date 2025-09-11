@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,9 +26,11 @@ public class OrderEventPayload {
     @AllArgsConstructor
     @Builder
     public static class OrderCreated {
+
         private Long orderId;
         private String userId;
-        private BigDecimal totalAmount;
+        private String orderUuid;
+        private Long totalAmount;
         private List<OrderItem> orderItems;
         private LocalDateTime createdAt;
     }
@@ -70,7 +71,7 @@ public class OrderEventPayload {
     @Builder
     public static class OrderItem {
         private Long productId;
-        private Integer quantity;
-        private BigDecimal price;
+        private Long quantity;
+        private Long price;
     }
 }

@@ -14,7 +14,9 @@ import com.loopers.domain.user.UserEntity;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.order.OrderV1Dto;
 import com.loopers.interfaces.listener.coupon.UserCouponUseEvent;
+import com.loopers.interfaces.listener.order.OrderCompletedEvent;
 import com.loopers.interfaces.listener.payment.PaymentCreateEvent;
+import com.loopers.kafka.message.payload.OrderEventPayload;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.GlobalErrorType;
 import lombok.RequiredArgsConstructor;
@@ -83,6 +85,14 @@ public class OrderFacade {
             eventPublisher.publish(new UserCouponUseEvent(orderEntity.getPayment().getId(), orderEntity.getUserCoupon().getId(), orderEntity.getTotalPrice(), orderEntity.getId(), LocalDateTime.now()));
         }
 
+        List<OrderEventPayload.OrderItem> orderItems = itemList.stream()
+                .map(item -> OrderEventPayload.OrderItem.builder()
+                        .productId(item.productEntity().getId())
+                        .quantity(item.quantity())
+                        .price(item.productEntity().getPrice())
+                        .build())
+                .toList();
+
         // 8. 결제
         eventPublisher.publish(new PaymentCreateEvent(
                 orderEntity.getUser().getId(),
@@ -92,8 +102,8 @@ public class OrderFacade {
                 orderEntity.getId(),
                 LocalDateTime.now()
         ));
-
-//        eventPublisher.publish(DataPlatformSendEvent.orderComplete(orderEntity.getId(), user.getId(), orderEntity.getUuid(), orderEntity.getTotalPrice()));
+        OrderCompletedEvent e = new OrderCompletedEvent(orderEntity.getId(), user.getLoginId(), orderEntity.getUuid(), orderEntity.getTotalPrice(), orderItems, LocalDateTime.now());
+        eventPublisher.publish(e);
         return OrderInfo.from(orderEntity);
     }
 

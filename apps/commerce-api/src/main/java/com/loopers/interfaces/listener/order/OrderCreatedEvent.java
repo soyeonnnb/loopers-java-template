@@ -10,7 +10,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter
-public class OrderCompletedEvent implements Event {
+public class OrderCreatedEvent implements Event {
 
     private Long orderId;
     private String userId;
@@ -28,4 +28,6 @@ public class OrderCompletedEvent implements Event {
     public String getAggregateId() {
         return String.valueOf(orderId);
     }
+
+
 }
