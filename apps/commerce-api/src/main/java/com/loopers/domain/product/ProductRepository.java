@@ -17,6 +17,6 @@ public interface ProductRepository {
     List<ProductEntity> saveAll(List<ProductEntity> productEntityList);
 
     Optional<ProductEntity> getProductInfoWithLock(Long productId);
-
+    
     List<ProductEntity> findAllByIdIn(List<Long> productIdList);
 }

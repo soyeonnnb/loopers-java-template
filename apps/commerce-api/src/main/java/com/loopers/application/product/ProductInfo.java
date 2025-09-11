@@ -4,17 +4,23 @@ import com.loopers.domain.product.ProductEntity;
 
 public record ProductInfo(Long id, String name, Boolean isLike, BrandInfo brandInfo, Long price, Long quantity,
                           String description,
-                          Long totalLikes) {
+                          Long totalLikes, Long rank, Double score) {
+
+    public static ProductInfo from(ProductEntity productEntity, Boolean userLike, Long rank, Double score) {
+        // 일단 좋아요는 false 처리 -> 기능 구현 후 수정
+        return new ProductInfo(productEntity.getId(), productEntity.getName(), userLike, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount(), rank, score);
+    }
+
     public static ProductInfo from(ProductEntity productEntity, Boolean userLike) {
         // 일단 좋아요는 false 처리 -> 기능 구현 후 수정
-        return new ProductInfo(productEntity.getId(), productEntity.getName(), userLike, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount());
+        return new ProductInfo(productEntity.getId(), productEntity.getName(), userLike, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount(), null, null);
     }
 
     public static ProductInfo from(ProductEntity productEntity) {
-        return new ProductInfo(productEntity.getId(), productEntity.getName(), false, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount());
+        return new ProductInfo(productEntity.getId(), productEntity.getName(), false, BrandInfo.from(productEntity.getBrand()), productEntity.getPrice(), productEntity.getQuantity(), productEntity.getDescription(), productEntity.getProductCount().getLikeCount(), null, null);
     }
 
-    public static ProductInfo from(ProductCacheDto cacheDto, Boolean userLike) {
+    public static ProductInfo from(ProductCacheDto cacheDto, Boolean userLike, Long rank, Double score) {
         return new ProductInfo(
                 cacheDto.getId(),
                 cacheDto.getName(),
@@ -23,11 +29,14 @@ public record ProductInfo(Long id, String name, Boolean isLike, BrandInfo brandI
                 cacheDto.getPrice(),
                 cacheDto.getQuantity(),
                 cacheDto.getDescription(),
-                cacheDto.getLikeCount()
+                cacheDto.getLikeCount(),
+                rank,
+                score
+
         );
     }
 
     public static ProductInfo from(ProductCacheDto cacheDto) {
-        return from(cacheDto, false);
+        return from(cacheDto, false, null, null);
     }
 }
